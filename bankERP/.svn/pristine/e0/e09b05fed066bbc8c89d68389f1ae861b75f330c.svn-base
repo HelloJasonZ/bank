@@ -1,0 +1,175 @@
+package com.vivebest.erp.service.impl;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.vivebest.erp.entity.Page;
+import com.vivebest.erp.entity.Transactions;
+import com.vivebest.erp.mapper.TransactionsMapper;
+import com.vivebest.erp.service.TransactionsService;
+import com.vivebest.erp.utils.ExcelUtils;
+
+@Service
+public class TransactionsServiceImpl implements TransactionsService {
+
+	@Autowired
+	private TransactionsMapper transactionsMapper;
+
+	/**
+	 * 向交易流水表插入数据
+	 * 
+	 * @param transactions
+	 */
+	@Override
+	public void InsertToTransactions(Transactions transactions) {
+		// TODO Auto-generated method stub
+		transactionsMapper.insertToTransactions(transactions);
+	}
+
+	/**
+	 * 获取所有的交易流水信息普通分页
+	 * 
+	 * @param transactions
+	 * @return
+	 */
+
+	@Override 
+	public List<Transactions> selectAllTransactionsTen(Transactions transactions) 
+	{ 
+		return transactionsMapper.selectAllTransactionsTen(transactions); 
+	  
+	 }
+
+	@Override
+	public Page<Transactions> selectAllTransactions(String pageNumber,
+			int pageSize, Transactions transactions) {
+		// 为pn设置一个默认值
+		int pn = 1;
+
+		try {
+			// 一旦出现类型转换异常，则不会复制，pn为1
+			pn = Integer.parseInt(pageNumber);
+		} catch (NumberFormatException e) {
+		}
+		// 创建一个Page对象
+		Page<Transactions> page = new Page<Transactions>();
+		page.setPageNumber(pn);
+		page.setPageSize(pageSize);
+
+		page.setTotalRecord(transactionsMapper.selectTotalRecord2(transactions));
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("page", page);
+		map.put("transactions", transactions);
+
+		List<Transactions> data = transactionsMapper
+				.selectAllTransactions2(map);
+
+		page.setData(data);
+		// return userMapper.getAllTradeInfo(page, accountId);
+		return page;
+	}
+
+	@Override
+	/**
+	 * 待查询条件的分页
+	 */
+	public Page<Transactions> getAllTransactionsByCondition(String pageNumber,
+			int pageSize, Transactions transactions, String idCardString, String minString,
+			String maxString) {
+		// 为pn设置一个默认值
+		int pn = 1;
+
+		try {
+			// 一旦出现类型转换异常，则不会复制，pn为1
+			pn = Integer.parseInt(pageNumber);
+		} catch (NumberFormatException e) {
+		}
+
+		// 创建一个Page对象
+		Page<Transactions> page = new Page<Transactions>();
+		page.setPageNumber(pn);
+		page.setPageSize(pageSize);
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		Date minDate = null;
+		
+
+		Map<String, Object> map = new HashMap<>();
+		try {
+			minDate = sdf.parse(minString);
+		} catch (Exception e) {
+			// minDate = sdf.parse("1970-1-1 00:00:00");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Date maxDate = null;
+		try {
+			maxDate = sdf.parse(maxString);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Calendar c = Calendar.getInstance();
+		if((minDate != null)&&(maxDate == null)){
+			maxDate = new Date();
+			System.out.println("最大时间：>>>>>>>>>>>>"+maxDate);
+		}
+		
+		if((minDate == null)&&(maxDate != null)){
+			c.setTime(maxDate);
+			System.out.println("最大时间：<<<<<<<<<<<<<<"+maxDate);
+			int day = c.get(Calendar.DATE);  
+		    c.set(Calendar.DATE, day - 1);  
+			minDate = c.getTime();
+			System.out.println("最小时间：<<<<<<<<<<<<<<"+minDate);
+		}
+		
+
+		map.put("minDate", minDate);
+		map.put("maxDate", maxDate);
+		map.put("cus_idcard", idCardString);
+
+		map.put("transactions", transactions);
+
+		if (transactionsMapper.selectTotalRecord3(map) == 0) {
+			page.setData(null);
+			return page;
+		}
+		page.setTotalRecord(transactionsMapper.selectTotalRecord3(map));
+		map.put("page", page);
+
+		List<Transactions> data = transactionsMapper
+				.getAllTransactionsByCondition(map);
+
+		page.setData(data);
+		// return userMapper.getAllTradeInfo(page, accountId);
+		return page;
+	}
+
+	@Override
+	public ByteArrayOutputStream getDownFileOutStream(Transactions transactions) {
+		// TODO Auto-generated method stub
+		String columnNames[] = { "交易流水号", "交易账号", "交易金额", "时间", "摘要", "交易地点" };
+		List<Transactions> list = selectAllTransactionsTen(transactions);
+		
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		try {
+			ExcelUtils.createWorkBook(list, columnNames).write(os);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return os;
+	}
+
+}

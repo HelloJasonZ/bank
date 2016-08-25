@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vivebest.erp.mapper.TransactionsMapper">
+
+	<!-- tr_id tr_number ac_number cus_id tr_balance tr_time tr_type tr_address 
+		is_delete -->
+
+	<!-- <resultMap id="TransactionsResultMap" type="Dog"> <id column="id" property="id" 
+		/> <result column="dog_Name" property="dogName" /> <result column="dog_Weight" 
+		property="dogWeight" /> </resultMap> -->
+	<sql id="columns">
+		tr_id, tr_number, ac_number, cus_id,tr_balance,
+		tr_time,tr_type, tr_address, is_delete
+	</sql>
+
+
+
+	<insert id="insertToTransactions" parameterType="com.vivebest.erp.entity.Transactions">
+		insert into Transactions
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="trNumber != null">
+				tr_number,
+			</if>
+			<if test="acNumber != null">
+				ac_number,
+			</if>
+			<if test="cusId != null">
+				cus_id,
+			</if>
+			<if test="trBalance != null">
+				tr_balance,
+			</if>
+			<if test="trTime != null">
+				tr_time,
+			</if>
+			<if test="trType != null">
+				tr_type,
+			</if>
+			<if test="trAddress != null">
+				tr_address,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+		</trim>
+		<!-- INTEGER trId, String trNumber, Customer customer, String acNumber, 
+			BigDecimal acBalance, Date trTime, INTEGER trType, String trAddress) -->
+		<trim prefix=" values (" suffix=")" suffixOverrides=",">
+			<if test="trNumber != null">
+				#{trNumber},
+			</if>
+			<if test="acNumber != null">
+				#{acNumber},
+			</if>
+			<if test="cusId != null">
+				#{cusId},
+			</if>
+			<if test="trBalance != null">
+				#{trBalance},
+			</if>
+			<if test="trTime != null">
+				#{trTime},
+			</if>
+			<if test="trType != null">
+				#{trType},
+			</if>
+			<if test="trAddress != null">
+				#{trAddress},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete},
+			</if>
+		</trim>
+	</insert>
+	<!-- tr_id tr_number ac_number cus_id tr_balance tr_time tr_type tr_address 
+		is_delete -->
+	<!-- INTEGER trId, String trNumber, Customer customer, String acNumber, 
+		BigDecimal trBalance, Date trTime, INTEGER trType, String trAddress) -->
+	<resultMap id="baseResult" type="com.vivebest.erp.entity.Transactions">
+		<id property="trId" column="tr_id" jdbcType="INTEGER" javaType="int" />
+		<result property="trNumber" column="tr_number" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="acNumber" column="ac_number" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="cusId" column="cus_id" jdbcType="INTEGER"
+			javaType="int" />
+		<result property="trBalance" column="tr_balance" jdbcType="DECIMAL"
+			javaType="java.math.BigDecimal" />
+		<result property="trTime" column="tr_time" jdbcType="TIMESTAMP"
+			javaType="java.sql.Timestamp" />
+		<result property="trType" column="tr_type" jdbcType="INTEGER"
+			javaType="int" />
+		<result property="trAddress" column="tr_address" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="isDelete" column="is_delete" jdbcType="BOOLEAN"
+			javaType="boolean" />
+	</resultMap>
+
+	<!-- <resultMap type="com.vivebest.erp.entity.Customer" id="customerResultMap"> 
+		<id column="cus_id" property="cusId" /> <result column="cus_id" property="cusId" 
+		/> </resultMap> -->
+	<!-- 获取转账信息。动态查询 -->
+<!-- 	<select id="getAllTransactions" parameterType="com.vivebest.erp.entity.Transactions"
+		resultMap="baseResult">
+		SELECT
+		<include refid="columns" />
+		FROM customer
+		<where>
+			<if test="trId!=null">tr_id=#{trId},</if>
+			<if test="trNumber!=null">tr_number=#{trNumber},</if>
+			<if test="cusId!=null">cus_id=#{cusId},</if>
+			<if test="acNumber!=null">ac_number=#{acNumber},</if>
+			<if test="trBalance!=null">tr_balance=#{trBalance},</if>
+			<if test="trTime!=null">tr_time=#{trTime},</if>
+			<if test="trType!=NULL">tr_type=#{trType},</if>
+			<if test="trAddress!=null">tr_address=#{trAddress},</if>
+			<if test="isDelete!=null">is_delete=#{isDelete}</if>
+		</where>
+	</select> -->
+
+	<select id="selectTotalRecord2" parameterType="com.vivebest.erp.entity.Transactions"
+		resultType="int">
+		SELECT COUNT(*) FROM transactions
+		<where>
+			is_delete = 1
+		</where>
+	</select>
+
+	<select id="selectAllTransactions2" parameterType="map"
+		resultMap="baseResult">
+		select
+		<include refid="columns" />
+		from transactions
+		<where>
+			is_delete = 1
+		</where>
+		limit #{page.index},#{page.pageSize}
+	</select>
+
+
+	<select id="selectAllTransactionsTen" parameterType="com.vivebest.erp.entity.Transactions"
+		resultMap="baseResult">
+		select 
+		<include refid="columns" />
+		from transactions
+		<where>
+			<if test=" acNumber !=null and acNumber != '' ">
+				ac_number = #{acNumber}
+			</if>
+			AND is_delete = 1 ORDER BY tr_time DESC LIMIT 0,9 
+		</where>
+	</select>
+	<!-- tr_id tr_number ac_number cus_id tr_balance tr_time tr_type tr_address 
+		is_delete -->
+	<!-- INTEGER trId, String trNumber, Customer customer, String acNumber, 
+		BigDecimal trBalance, Date trTime, INTEGER trType, String trAddress) -->
+
+	<select id="selectTotalRecord3" parameterType="map" resultType="int">
+		SELECT COUNT(*) FROM transactions
+		<where>
+			<if test="transactions.acNumber !=null and transactions.acNumber != '' ">
+				ac_number = #{transactions.acNumber}
+			</if>
+			<if test=" minDate !=null and maxDate !=null">
+			<![CDATA[and tr_time between #{minDate} and #{maxDate}]]>
+			</if>
+			and is_delete = 1
+		</where>
+	</select>
+
+	<select id="getAllTransactionsByCondition" parameterType="map"
+		resultMap="baseResult">
+		select 
+		<include refid="columns" />
+		from transactions
+		<where>
+			<if test="cus_idcard != null and cus_idcard != ''">
+				cus_id = (SELECT cus_id FROM customer WHERE cus_idcard = #{cus_idcard})
+			</if>
+			<if test="transactions.acNumber!=null">
+				and ac_number = #{transactions.acNumber}
+			</if>
+
+			<if test=" minDate !=null and maxDate !=null">
+				and tr_time between #{minDate} and #{maxDate}
+			</if>
+			and is_delete = 1
+			limit #{page.index},#{page.pageSize}
+		</where>
+	</select>
+
+	<update id="updateTransactions" parameterType="com.vivebest.erp.entity.Transactions">
+		update transactions
+		<set>
+			<if test="isDelete !=true">is_delete=#{isDelete},</if>
+		</set>
+		<where>
+			<if test="trNumber !=null and trNumber != '' ">
+				tr_number = #{trNumber}
+			</if>
+		</where>
+	</update>
+
+</mapper>

@@ -1,0 +1,444 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/commons/taglibs.jsp" %>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>客户基本信息</title>
+	 <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <!-- Bootstrap Styles-->
+    <link href="${ctx}/style/assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FontAwesome Styles-->
+    <link href="${ctx}/style/assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- Morris Chart Styles-->
+    <link href="${ctx}/style/assets/js/morris/morris-0.4.3.min.css" rel="stylesheet" />
+    <!-- Custom Styles-->
+    <link href="${ctx}/style/assets/css/custom-styles.css" rel="stylesheet" />
+    <!-- Google Fonts-->
+    <link href=${ctx}/style/style.css?family=Open+Sans' rel='stylesheet' type='text/css' />
+    <link rel="stylesheet" type="text/css" href="${ctx}/style/home_login/main.css" />
+	<link rel="stylesheet" type="text/css" href="${ctx}/style/home_login/style.css" />
+	<script src="${ctx}/style/assets/js/jquery-1.10.2.js"></script>
+	<script src="${ctx}/scripts/main.js"></script>
+     
+</head>
+
+<body>
+    <div id="wrapper">
+         <nav class="navbar navbar-default top-navbar" role="navigation">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">
+                
+                <strong><img alt="logo" src="${ctx}/images/logo_head.png" style="width:30px;height:30px;"/>VIVEBEST</strong></a>
+            </div>
+
+            <ul class="nav navbar-top-links navbar-right">
+                <!-- /.dropdown -->
+                <li class="dropdown">
+                 <!--用jctl进行判断当前处理的客户的状态  -->
+                 <c:if test="${customer==NULL}" >
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                                             当前无客户业务<i class="fa fa-user fa-fw"></i><i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-user" id="main_nav">
+                        <li><a class="cd-signin"  href="javascript:void(0);"><i class="fa fa-user fa-fw"></i> Login</a>
+                        </li>
+                </ul>
+                </c:if>
+               
+               
+                <c:if test="${customer!=NULL}">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                      当前进行业务客户
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      ${customer.cusName}	<i class="fa fa-user fa-fw"></i><i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li><a href="${ctx}/customer/showCustomer.do" ><i class="fa fa-user fa-fw"></i>客户信息</a>
+                        </li>
+                        <!-- <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        </li> -->
+                        <li class="divider"></li>
+                        <li><a href="javascript:void(0);" onclick="loginOut();"><i class="fa fa-sign-out fa-fw"></i>客户退出</a>
+                        </li>
+                    </ul>
+                    </c:if>
+                    <!-- /.dropdown-user -->
+                </li>
+                <!-- /.dropdown -->
+            </ul>
+        </nav>
+        <!--/. NAV TOP  -->
+        <nav class="navbar-default navbar-side" role="navigation">
+            <div class="sidebar-collapse">
+                <ul class="nav" id="main-menu">
+
+                    <li>
+                        <a  href="${ctx}/teller/loginHome.do"><i class="fa fa-dashboard"></i>柜员信息中心</a>
+                    </li>
+					<li>
+                        <a class="active-menu" href="chart.html"><i class="fa fa-bar-chart-o"></i>客户管理<span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                        <c:if test="${customer!=null}">
+                            <li>
+                                <a href="${ctx}/customer/showCustomer.do"> <i class="fa fa-user"></i>客户信息</a>
+                            </li>
+							<li>
+                                <a href="${ctx}/account/forwardAccounts.do"><i class="fa fa-link"></i>当前客户账号详情</a>
+                            </li>
+                            <li>
+                                <a href="${ctx}/views/customer/update_customer.jsp"><i class="fa fa-edit "></i>修改客户</a>
+                            </li>
+                        </c:if>
+                        <c:if test="${customer==null}">
+                            <li>
+                                	<a href="${ctx}/customer/returnTakenSumbit.do"><i class="fa fa-fw fa-file"></i>新增客户</a>
+                            </li>
+                        </c:if>
+                        </ul>
+                        
+                    </li>
+                    <li>
+                        <a href="#"><i class="fa fa-shopping-cart"></i>客户业务<span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                            <c:if test="${customer!=null}">
+							<li>
+                                <a href="${ctx}/account/forwardaddAccount.do"><i class="fa fa-money"></i>开账户业务</a>
+                            </li>
+                            </c:if>
+                        </ul>
+                    </li>
+					
+
+					<c:if test="${teller!=null}">
+                    <li>
+                        <a href="#"><i class="fa fa-gear fa-fw"></i>设置<span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                             	<c:if test="${customer==null}">
+							 <li>
+                                <a href="${ctx}/views/teller/pt_update_teller_password.jsp" ><i class="fa fa-qrcode"></i>修改密码</a>
+                             </li>
+                              <li>
+                   			 <a href="${ctx}/teller/loginOut.do"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                    			</li>
+                    			</c:if>
+                        </ul>
+                    </li>
+                    </c:if>
+                </ul>
+            </div>
+        </nav>
+        
+        
+        <!-- 用户登录窗口 -->
+          <div class="cd-user-modal"> 
+					<div class="cd-user-modal-container">
+						<ul class="cd-switcher">
+				<li><a href="#0">用户登录</a></li>
+			</ul>
+
+			<div id="cd-login"> <!-- 登录表单 -->
+				<form class="cd-form">
+					<p class="fieldset">
+						<label class="image-replace cd-username" for="signin-username">用户名</label>
+						<input class="full-width has-padding has-border" id="signin-username" type="text" placeholder="输入用户名">
+					</p>
+
+					<p class="fieldset">
+						<label class="image-replace cd-password" for="signin-password">密码</label>
+						<input class="full-width has-padding has-border" id="signin-password" type="password"  placeholder="输入密码">
+					</p>
+
+
+					<p class="fieldset">
+						<input class="full-width2" type="submit" value="登 录">
+					</p>
+				</form>
+			</div>
+
+
+			<a href="#0" class="cd-close-form">关闭</a>
+		</div>
+	</div>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        <!-- /. NAV SIDE  -->
+       <div id="page-wrapper" >
+            <div id="page-inner">
+			 <div class="row">
+                    <div class="col-md-12">
+                        <h1 class="page-header">
+                            客户& 账户 
+                        </h1>
+						<ol class="breadcrumb">
+							<li><a href="#">户主</a></li>
+							<li><a href="#">${customer.cusName}</a></li>
+							<li class="active">共有${list.size()}张卡</li>
+						</ol>
+                    </div>
+                </div> 
+
+                 <!-- /. ROW  -->
+                                 
+                   <!-- /. ROW  -->
+            <div class="row">
+	          <c:forEach var="account" items="${requestScope.list}">
+	          
+	          		<div class="col-md-4 col-sm-4">
+                    <div class="panel panel-primary">
+                    <c:if test="${account.acState==true}">
+                        <div class="panel-heading">
+                            状态:正常
+                        </div>
+                    </c:if>
+                    <c:if test="${account.acState==false}">
+                     <div class="panel-heading" style="color:red;">
+                           状态:已锁卡
+                        </div>
+                    </c:if>
+                        <div class="panel-body">
+                            <%-- <p>卡号:${account.acNumber}</p> --%>
+                            <p>卡号:${account.noShowNumber}</p>
+							<br>
+							<img alt="招商银行" src="${ctx}/images/PocVLbJBf.png" width="135" height="40" seed="bankBindLogo-iE201305PocVLbJBf" smartracker="on">
+							<span class="card-type card-type-DC" style="background:url('${ctx}/images/MbrAtHLGP.png') no-repeat left top; text-indent: -9999px;position: absolute;width: 49px;height: 18px;overflow: hidden;">储蓄卡</span>
+							
+                        </div>
+                        <div class="panel-footer">
+                         <c:if test="${account.acState==true}">
+                        <a href="${ctx}/account/forwardAction.do?acNumber=${account.acNumber}">业务操作</a>
+                        </c:if>
+                           <c:if test="${account.acState==false}">
+                       已锁卡
+                    </c:if>
+                        </div>
+                    </div>
+                </div>
+	           </c:forEach>
+	          		
+	          		
+	          		
+	          		
+	          		
+	          
+	         
+            
+                <%-- <div class="col-md-4 col-sm-4">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            状态:正常
+                        </div>
+                        <div class="panel-body">
+                            <p>卡号:622848*********0018</p>
+							<br>
+							<img alt="招商银行" src="${ctx}/images/PocVLbJBf.png" width="135" height="40" seed="bankBindLogo-iE201305PocVLbJBf" smartracker="on">
+							<span class="card-type card-type-DC" style="background:url('${ctx}/images/MbrAtHLGP.png') no-repeat left top; text-indent: -9999px;position: absolute;width: 49px;height: 18px;overflow: hidden;">储蓄卡</span>
+							
+                        </div>
+                        <div class="panel-footer">
+                            <a href="${ctx}/views/customer/action_customer_account.jsp">业务操作</a>
+                        </div>
+                    </div>
+                </div>
+
+				<div class="col-md-4 col-sm-4">
+                    <div class="panel panel-danger">
+                        <div class="panel-heading">
+                           状态:已锁卡
+                        </div>
+                        <div class="panel-body">
+                            <p>卡号:622848*********0018</p>
+							<br>
+							<img alt="招商银行" src="${ctx}/images/PocVLbJBf.png" width="135" height="40" seed="bankBindLogo-iE201305PocVLbJBf" smartracker="on">
+							<span class="card-type card-type-DC" style="background:url('${ctx}/images/MbrAtHLGP.png') no-repeat left top; text-indent: -9999px;position: absolute;width: 49px;height: 18px;overflow: hidden;">储蓄卡</span>
+                        </div>
+                        <div class="panel-footer">
+                             已锁卡
+                        </div>
+                    </div>
+                </div> --%>
+
+
+				<div class="col-md-4 col-sm-4" >
+                    <div class="panel panel-success" style="height:250px;">
+                        <div class="panel-heading">
+                           增加银行卡
+                        </div>
+                        <div class="panel-body" style="text-align:center;margin-top:50px;" >
+						<a style="text-align:center;font-weight: 700;" href="${ctx}/account/forwardaddAccount.do">
+                            <i class="iconfont" style="display: block;
+    margin: 0 auto;
+    vertical-align: -5px;
+    font-size: 60px;
+    color: #A8B5C4;
+    cursor: pointer;
+	text-align: center;
+	font-family:"rei";
+    font-style: normal;
+    font-weight: normal;
+    cursor: default;
+    -webkit-font-smoothing: antialiased;">+</i>
+							添加银行卡
+							</a>
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+                    <!-- /. ROW  -->
+            
+                    <!-- /. ROW  -->
+            
+                    <!-- /. ROW  -->
+           
+                    <!-- /. ROW  -->
+           
+					</div>
+			 <!-- /. PAGE INNER  -->
+            </div>
+         <!-- /. PAGE WRAPPER  -->
+        </div>
+    <!-- /. WRAPPER  -->
+    <!-- JS Scripts-->
+    <!-- jQuery Js -->
+    
+    <!-- Bootstrap Js -->
+    <script src="${ctx}/style/assets/js/bootstrap.min.js"></script>
+	 
+    <!-- Metis Menu Js -->
+    <script src="${ctx}/style/assets/js/jquery.metisMenu.js"></script>
+    <!-- Morris Chart Js -->
+    <script src="${ctx}/style/assets/js/morris/raphael-2.1.0.min.js"></script>
+    <script src="${ctx}/style/assets/js/morris/morris.js"></script>
+	
+	
+	<script src="${ctx}/style/assets/js/easypiechart.js"></script>
+	<script src="${ctx}/style/assets/js/easypiechart-data.js"></script>
+	
+	 <script src="${ctx}/style/assets/js/Lightweight-Chart/jquery.chart.js"></script>
+	
+    <!-- Custom Js -->
+    <script src="${ctx}/style/assets/js/custom-scripts.js"></script>
+ 	
+ 	<script src="${ctx}/scripts/main.js"></script>
+ 	
+ 	<script type="text/javascript">
+ 	
+ 	/* $('#loginCou').on('click', function(event){
+		var userName=$("#signin-username").val();
+		var password=$("#signin-password").val();
+		if(userName.length==0||password.length==0)
+
+			{
+			alert("输入框不能为空！");
+			return null;
+			}
+		else
+			{
+		//ajax登陆
+		$.ajax({
+			 type:'POST',
+			 data:{"cusName":userName,"cusPassword":password},
+			 dataType:'html',
+			 cache:false,
+			 url:'${ctx}/customer/customerLogin.do',
+			 error:function (responseText, textStatus, XMLHttpRequest)
+            {
+            },
+            success: function(data){
+            	if(data=="0")
+          		 {
+          		 alert("密码错误或用户不存在！");
+          		window.location.href='${ctx}/teller/loginHome.do';
+          		 }
+          	 else if(data=="1")
+          		 { alert("存在！");
+          		 window.location.href='${ctx}/teller/loginHome.do';
+          		 }
+            }
+		  });
+			}
+ 	}); */
+ 	
+ 	function show_login()
+	{
+		var userName=$("#signin-username").val();
+	var password=$("#signin-password").val();
+	if(userName.length==0||password.length==0)
+
+		{
+		alert("输入框不能为空！");
+		return null;
+		}
+	else
+		{
+	//ajax登陆
+	$.ajax({
+		 type:'POST',
+		 data:{"cusName":userName,"cusPassword":password},
+		 dataType:'html',
+		 cache:false,
+		 url:'${ctx}/customer/customerLogin.do',
+		 error:function (responseText, textStatus, XMLHttpRequest)
+        {
+        },
+        success: function(data){
+        	if(data==0)
+      		 {
+      		 alert("密码错误或用户不存在！");
+      		window.location.href='${ctx}/teller/loginHome.do';
+      		//window.location.reload();
+      		 }
+      	 else if(data==1)
+      		 { 
+      		 window.location.href='${ctx}/teller/loginHome.do';
+      		 }
+        }
+	  });
+		}
+	}
+ 	
+ 	function loginOut()
+ 	{
+ 			$.ajax({
+ 				 type:'POST',
+ 				 dataType:'json',
+ 				 url:'${ctx}/customer/customerLoginOut.do',
+ 				 error:function (date)
+ 	            {
+ 	           	 alert(date.status);
+ 	            },
+ 	            success: function(data){
+ 	            	if(data=="1")
+ 	            		{
+ 	            		window.location.href='${ctx}/views/teller/login.jsp';
+ 	            		}
+ 	            	else if(data=="0")
+ 	            		{
+ 	            		window.location.href='${ctx}/teller/loginHome.do';
+ 	            		//window.location.reload();
+ 	            		}
+ 	            }
+ 			  });
+ 			
+ 	}
+ 	</script>
+
+  </body>
+</html>

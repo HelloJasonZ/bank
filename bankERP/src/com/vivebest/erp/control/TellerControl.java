@@ -1,0 +1,384 @@
+package com.vivebest.erp.control;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import ch.qos.logback.core.util.TimeUtil;
+
+import com.vivebest.erp.entity.Authority;
+import com.vivebest.erp.entity.Teller;
+import com.vivebest.erp.service.AuthorityService;
+import com.vivebest.erp.service.TellerService;
+import com.vivebest.erp.utils.MD5;
+import com.vivebest.erp.utils.ReusltTeller;
+import com.vivebest.erp.utils.TimeUtils;
+
+@Controller
+@RequestMapping("/teller")
+public class TellerControl {
+
+	@Autowired
+	private TellerService tellerService;
+
+	@Autowired
+	private AuthorityService authorityService;
+
+	
+	/**
+	 * 做表单token设置
+	 * @param model
+	 * @param req
+	 * @param rsp
+	 * @return
+	 */
+	@RequestMapping(value = "/returnTakenSumbit", method = RequestMethod.GET)
+	public String returnTakenSumbit(Model model, HttpServletRequest req,
+			HttpServletResponse rsp) {
+		Teller teller = (Teller) req.getSession().getAttribute("teller");
+		if (teller == null) {
+			return "teller/login";
+		} else {
+			req.getSession().setAttribute("teller_register", new Date());
+			return "teller/register";
+		}
+	}
+
+	/**
+	 * 验证柜员名是否可用
+	 * 
+	 * @param tName
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/checkTName", method = RequestMethod.POST)
+	@ResponseBody
+	public String checkTName(@RequestParam String tName, HttpSession session) {
+		System.out.println(tName + "<<<<<<<<<<<<<<<<<<<");
+		Teller teller = new Teller();
+		teller.settName(tName);
+		System.out.println(teller.toString());
+		Teller teller0 = tellerService.selectTeller(teller);
+		// System.out.println(cus);
+		if (teller0 == null) {
+			return "1";
+		} else {
+			return "0";
+		}
+	}
+
+	/*
+	 * 去柜员注册页面
+	 * 
+	 * @param request
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/to_register.do", method = RequestMethod.GET)
+	public String toRegister(HttpServletRequest request) {
+		Teller teller = (Teller) request.getSession().getAttribute("teller");
+		if (teller == null) {
+			return "teller/login";
+		}
+		else {
+			request.getSession().setAttribute("teller_register", new Date());
+			return "teller/register";
+		}
+	}
+
+	@RequestMapping(value = "/addTeller.do", method = RequestMethod.POST)
+	public String registerTeller(HttpServletRequest request) {
+		Object obj = request.getSession().getAttribute("teller_register");
+		if(obj != null){
+			String tName = request.getParameter("tName");
+			String tPassword = request.getParameter("tPassword");
+			Teller teller0 = new Teller();
+			teller0.settName(tName);
+			
+			teller0.setDelete(true);
+			teller0.settPassword(MD5.encode(tPassword.trim()));
+			long maxTNumber = tellerService.getMaxTNumber();
+			teller0.settNumber(maxTNumber + 1);
+			teller0.setAutId(1);
+			boolean insertTeller = tellerService.insertTeller(teller0);
+			if (insertTeller) {
+				request.setAttribute("teller0", teller0);
+				request.getSession().removeAttribute("teller_register");
+				return "teller/register_success";
+			} else {
+				request.getSession().removeAttribute("register");
+				return "teller/register";
+			}
+			
+		}else{
+			return "back/backHome";
+		}
+	}
+
+	/**
+	 * 登陆时间
+	 * 
+	 * @param userName
+	 * @param password
+	 * @param httpSession
+	 * @return
+	 */
+	@RequestMapping(value = "loginTeller", method = RequestMethod.POST)
+	@ResponseBody
+	public String loginTeller(@RequestParam String userName,
+			@RequestParam String password, HttpSession httpSession,
+			HttpServletRequest request) {
+		Teller teller = new Teller();
+		teller.settName(userName);
+		teller.settPassword(MD5.encode(password.trim()));
+		Teller t = tellerService.tellerLogin(teller);
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>" + t);
+		if (t != null) {
+			// 不为空
+			// 登陆成功
+			// 判断柜员是否失效
+			if (t.getIsDelete()) {
+				// 存在
+				System.out.println(">>>>>>>>>>>>>>登陆成功");
+				httpSession.setAttribute("teller", t);
+				// 修改登陆时间
+
+				Teller t_update = tellerService.tellerLogin(teller);
+				t_update.settLoginTime(new Date());
+				tellerService.updateTeller(t_update);
+				System.out.println(">>>>>>>>>修改时间");
+
+				httpSession.removeAttribute("customer");// 消除剩余的客户
+				return "1";
+			} else {
+				// 失效用户
+				System.out.println(">>>>>>>>>>>>>>失效用户");
+				return "-1";
+			}
+		} else {
+			// 不存在
+			System.out.println(">>>>>>>>>>>>>>登陆失败");
+			return "0";
+		}
+	}
+
+	@RequestMapping(value = "loginHome", method = RequestMethod.GET)
+	public String loginHome(HttpSession httpSession, HttpServletRequest request) {
+		Teller teller = (Teller) httpSession.getAttribute("teller");
+		if (teller == null) {
+			// 用户失效重新登陆
+			return "teller/login";
+		} else {
+			// 获取全部权限
+			Authority authority = new Authority();
+			authority.setDelete(true);
+			List<Authority> authorities = authorityService.getAllAu(authority);
+
+			request.setAttribute("au_list", authorities);
+			if (teller.getAutId() == 1) {
+				// 跳转到普通柜员
+				// 查询客户处理事件数，等待写
+				return "teller/home";
+			} else {
+				// 跳转到主管以上
+				return "back/backHome";
+			}
+		}
+	}
+
+	// 退出
+	@RequestMapping(value = "loginOut", method = RequestMethod.GET)
+	public String loginOut(HttpSession httpSession) {
+		Teller teller = (Teller) httpSession.getAttribute("teller");
+		if (teller == null) {
+			// 用户失效重新登陆
+			return "teller/login";
+		} else {
+			httpSession.removeAttribute("teller");
+			// 查询客户处理事件数，等待写
+			return "teller/login";
+		}
+	}
+
+	// 显示全部柜员信息
+	@RequestMapping(value = "showTeller", method = RequestMethod.GET)
+	public String showTeller(HttpSession httpSession, HttpServletRequest request) {
+		Teller teller = (Teller) httpSession.getAttribute("teller");
+		if (teller == null) {
+			// 用户失效重新登陆
+			return "teller/login";
+		} else {
+			Teller t = new Teller();
+			t.setDelete(true);
+
+			Authority authority = new Authority();
+			authority.setDelete(true);
+			List<Authority> aus = authorityService.getAllAu(authority);
+			System.out.println(">>>>>>>>>>>>>>>" + aus);
+			List<Teller> tellers = tellerService.getAllTeller(teller);
+			request.setAttribute("tellers", tellers);
+			request.setAttribute("aus", aus);
+			return "back/show_teller";
+		}
+	}
+
+	// 获取某个柜员信息
+	@RequestMapping(value = "getTellerMessage", method = RequestMethod.POST)
+	@ResponseBody
+	public Teller getTellerMessage(Model model, @RequestParam String id,
+			HttpSession httpSession, HttpServletRequest request) {
+		Teller teller = (Teller) httpSession.getAttribute("teller");
+		if (teller == null) {
+			// 用户失效重新登陆
+			model.addAttribute("statu", 0);
+			return null;
+		} else {
+			Teller t = new Teller();
+			t.settId(Integer.parseInt(id));
+			Teller te = tellerService.getTellerMessage(t);
+
+			/*
+			 * model.addAttribute("statu", 1); model.addAttribute("teller", te);
+			 * System.out.println(">>>>>>>>>>>>>>>>>>"+model);
+			 */
+			return te;
+		}
+	}
+
+	// 更新柜员权限
+	@RequestMapping(value = "updateTellerAu", method = RequestMethod.POST)
+	@ResponseBody
+	public String updateTellerAu(@RequestParam String tId,
+			@RequestParam String auId, HttpSession httpSession,
+			HttpServletRequest request) {
+		Teller teller = (Teller) httpSession.getAttribute("teller");
+		if (teller == null) {
+			// 用户失效重新登陆
+			return "0";
+		} else {
+			Teller t = new Teller();
+			t.settId(Integer.parseInt(tId));
+			Teller te = tellerService.getTellerMessage(t);
+			te.setAutId(Integer.parseInt(auId));// 修改权限
+			// 更改信息
+			boolean flag = tellerService.updateTeller(te);
+			if (flag) {
+				return "1";
+			} else {
+				return "-1";
+			}
+		}
+	}
+	
+	// 修改密码
+		@RequestMapping(value = "updateTellerPassword", method = RequestMethod.POST)
+		@ResponseBody
+		public String updateTellerPassword(	@RequestParam String password, HttpSession httpSession,
+				HttpServletRequest request) {
+			Teller teller = (Teller) httpSession.getAttribute("teller");
+			if (teller == null) {
+				// 用户失效重新登陆
+				return "0";
+			} else {
+				Teller t = new Teller();
+				t.settId(teller.gettId());
+				Teller te = tellerService.getTellerMessage(t);
+				te.settPassword(MD5.encode(password.trim()));// 修改密码
+				// 更改信息
+				boolean flag = tellerService.updateTeller(te);
+				if (flag) {
+					//修改成功，消除session重新登陆
+					httpSession.removeAttribute("teller");
+					return "1";
+				} else {
+					return "-1";
+				}
+			}
+		}
+		
+		//跳转柜员绩效
+		@RequestMapping(value = "returnShowData", method = RequestMethod.GET)
+		public String returnShowData(HttpSession httpSession,HttpServletRequest request) {
+			Teller teller = (Teller) httpSession.getAttribute("teller");
+			if (teller==null) {
+				return "teller/home";
+			}
+			else
+			{
+				return "back/show_data_teller";
+			}
+		}
+		
+		//获取全部柜员信息
+		@RequestMapping(value = "getDataTeller", method = RequestMethod.POST)
+		@ResponseBody
+		public List<HashMap<String, Object>> getDataTeller(HttpSession httpSession,HttpServletRequest request) {
+			List<HashMap<String, Object>> list=new ArrayList<>();
+			Teller teller = (Teller) httpSession.getAttribute("teller");
+			/*if (teller == null) {
+				// 用户失效重新登陆
+				return null;
+			} else {*/
+				Map<Integer,Integer> map=ReusltTeller.getDataNumber();
+				for (Integer key : map.keySet()) {
+					HashMap<String, Object> mess=new HashMap<String,Object>();
+					Teller t=new Teller();
+					t.settId(key);
+					t.setDelete(true);
+					
+					String name=tellerService.getTellerMessage(t).gettName();
+					mess.put("name", name);
+					mess.put("work", map.get(key));
+					list.add(mess);
+					  }
+				return list;
+			/*}*/
+		}
+		
+		//跳转柜员绩效
+				@RequestMapping(value = "returnShowAccountData", method = RequestMethod.GET)
+				public String returnShowAccountData(HttpSession httpSession,HttpServletRequest request) {
+					Teller teller = (Teller) httpSession.getAttribute("teller");
+					if (teller==null) {
+						return "teller/home";
+					}
+					else
+					{
+						return "back/show_data_account";
+					}
+				}
+		
+		//获取当前时间的卡号注册高峰期
+		@RequestMapping(value = "getDataAccount", method = RequestMethod.GET)
+		@ResponseBody
+		public List<Map<String,Object>> getDataAccount(HttpSession httpSession,HttpServletRequest request)
+		{
+			List<Map<String, Object>> list=new ArrayList<>();
+			Date time=new Date();
+			SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
+			Map<String, Integer> map=TimeUtils.getMess(sFormat.format(time));
+			for(String key:map.keySet())
+			{
+				HashMap<String, Object> mess=new HashMap<String,Object>();
+				mess.put("time", key);
+				mess.put("item", map.get(key));
+				list.add(mess);
+			}
+			return list;
+		}
+}

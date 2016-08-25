@@ -1,0 +1,514 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/commons/taglibs.jsp"%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>柜员注册</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Home</title>
+<!-- Bootstrap Styles-->
+<link href="${ctx}/style/assets/css/bootstrap.css" rel="stylesheet" />
+<!-- FontAwesome Styles-->
+<link href="${ctx}/style/assets/css/font-awesome.css" rel="stylesheet" />
+<!-- Morris Chart Styles-->
+<link href="${ctx}/style/assets/js/morris/morris-0.4.3.min.css"
+	rel="stylesheet" />
+<!-- Custom Styles-->
+<link href="${ctx}/style/assets/css/custom-styles.css" rel="stylesheet" />
+<!-- Google Fonts-->
+<link href=${ctx}/style/style.css?family=Open+Sans ' rel='stylesheet'
+	type='text/css' />
+
+<link rel="stylesheet" type="text/css"
+	href="${ctx}/style/home_login/main.css" />
+<link rel="stylesheet" type="text/css"
+	href="${ctx}/style/home_login/style.css" />
+<script src="${ctx}/style/assets/js/jquery-1.10.2.js"></script>
+<script src="${ctx}/scripts/main.js"></script>
+
+<script type="text/javascript">	
+	
+	//为提交按钮绑定单击响应函数
+	function before_submit(){
+			
+			//获取用户输入的柜员名、密码、重复密码
+			var tName_val=$("#tName").val();
+			var tPassword_val = $("#tPassword").val();
+			var tPassword_req_val =  $("#tPassword_req").val();
+			var flag = true;
+			if(tPassword_val!=tPassword_req_val)
+			{
+			alert("密码不一致~！");
+			return false;
+			}
+			 else if(tName_val==""||tName_val.length==0){
+				alert("柜员名不能为空");
+				return false;
+			} else {
+				flag =true;
+			}
+			
+			if(tPassword_val==""||tPassword_val.length==0){
+				alert("密码不能为空");
+				return false;
+			}else {
+				flag =true;
+			}
+			
+			if(tPassword_req_val==""||tPassword_req_val.length==0){
+				alert("重复密码不能为空");
+				return false;
+			}else {
+				flag =true;
+			} 
+			
+			return flag;
+		}
+
+	function check_tName()
+	{
+		var tName_val=$("#tName").val();
+		
+		if(tName_val==""||tName_val.length==0)
+		{
+			document.getElementById("show_info").innerHTML="<span style='color:red;'>柜员名不能为空</span>";
+			setTimeout(function(){document.getElementById("show_info").style.display="none";},5000);
+			setInterval(go_flush,1000);
+			
+		}
+		else if(isTName(tName_val)){
+			//身份证验证正确
+			$.ajax({
+ 					type:'POST',
+ 					data:{tName:tName_val},
+ 					dataType:'json',
+ 					url:'${ctx}/teller/checkTName.do',
+ 					error:function(date)
+ 					{
+ 						alert(date.status);
+ 					},
+ 					success:function (data)
+ 					{
+ 						if(data=="0")
+ 							{
+ 							//alert("柜员名不可用");
+ 							//window.location.href='${ctx}/views/customer/add_customer.jsp';
+ 							document.getElementById("show_info").innerHTML="<span style='color:red;'>柜员名不可用</span>";
+							setTimeout(function(){document.getElementById("show_info").style.display="none";},5000);
+							setInterval(go_flush,1000);
+ 							}
+ 						else 
+ 						{
+ 							//document.getElementById("show_email").innerHTML="<span style='color:red;'>身份证可用</span>";
+ 						}
+ 					}
+ 				});
+		}
+		else
+		{
+			//身份证格式不正确
+			document.getElementById("show_info").innerHTML="<span style='color:red;'>请输入包含字母、数字、-、_且3-16位的柜员名</span>";
+			setTimeout(function(){document.getElementById("show_info").style.display="none";},3000);
+			setInterval(go_flush,1000);
+		}
+	}
+	
+	//验证身份证类型	
+	function isTName(value) {
+		var isTName= /^[a-zA-Z0-9_-]{3,16}$/;
+		if (isTName.test(value)){
+			return true;
+			}
+		else
+			return false;
+		}
+		
+	
+	function check_tPassword() {
+		var tPassword_val=$("#tPassword").val();
+ 	
+		if (tPassword_val == "" || tPassword_val.length == 0) {
+		
+			document.getElementById("show_tPassword").innerHTML = "<span style='color:red;'>密码不能为空</span>";
+			setTimeout(
+					function() {
+						document.getElementById("show_tPassword").style.display = "none";
+					}, 5000);
+			setInterval(go_flush,1000);
+			/* window.location.href = '${ctx}/teller/to_register.do';  */
+		} else {
+			//密码正确
+			//alert("密码可用！");
+		}
+	}
+
+	function go_flush(){
+		window.location.href = '${ctx}/teller/to_register.do';
+	}
+	
+	function check_tPassword_req() { 
+	 	var tPassword_val = $("#tPassword").val();
+		var tPassword_req_val =  $("#tPassword_req").val();
+		
+		if (tPassword_req_val == "" || tPassword_req_val.length == 0) {
+			document.getElementById("show_tPassword_req").innerHTML = "<span style='color:red;'>密码不能为空!</span>";
+			setTimeout(
+					function() {
+						document.getElementById("show_tPassword_req").style.display = "none";
+					}, 5000);
+			setInterval(go_flush,1000);
+		/*  	window.location.href = '${ctx}/teller/to_register.do';  */
+			//alter("密码不能为空");
+		}  else if (tPassword_val != tPassword_req_val) {
+			//密码格式格式不正确
+			//alter("密码不正确");
+			document.getElementById("show_tPassword_req").innerHTML = "<span style='color:red;'>用户输入两次密码不一致!</span>";
+			setTimeout(
+					function() {
+						document.getElementById("show_tPassword_req").style.display = "none";
+					}, 5000);
+			setInterval(go_flush,3000);
+			//window.location.href='${ctx}/views/customer/update_customer.jsp';
+		} 
+	}
+</script>
+</head>
+
+<body>
+	<div id="wrapper">
+		<nav class="navbar navbar-default top-navbar" role="navigation">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse"
+				data-target=".sidebar-collapse">
+				<span class="sr-only">Toggle navigation</span> <span
+					class="icon-bar"></span> <span class="icon-bar"></span> <span
+					class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="index.html"> <strong><img
+					alt="" src="${ctx}/images/logo_head.png"
+					style="width: 30px; height: 30px;" />VIVEBEST</strong></a>
+		</div>
+
+		<!-- <ul class="nav navbar-top-links navbar-right">
+                /.dropdown
+                <li class="dropdown">
+                 用jctl进行判断当前处理的客户的状态 
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                                             当前无客户业务<i class="fa fa-user fa-fw"></i><i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-user" id="main_nav">
+                        <li><a class="cd-signin" href="#0"><i class="fa fa-user fa-fw"></i> Login</a>
+                        </li>
+                </ul>
+                
+               <nav class="main_nav">
+					<ul >
+						<li><a class="cd-signin" href="#0"><i class="fa fa-user fa-fw"></i> Losgin</a></li>
+					</ul>
+				</nav>
+               
+               
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
+                      当前进行业务客户	<i class="fa fa-user fa-fw"></i><i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        </li>
+                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="#"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                        </li>
+                    </ul>
+                    /.dropdown-user
+                </li>
+                /.dropdown
+            </ul> --> </nav>
+		<!--/. NAV TOP  -->
+		<nav class="navbar-default navbar-side" role="navigation">
+		<div id="sideNav" href="">
+			<i class="fa fa-caret-right"></i>
+		</div>
+		<div class="sidebar-collapse">
+
+			<ul class="nav" id="main-menu">
+				<!-- <li>
+                        <a class="active-menu" href="${ctx}/views/teller/home.jsp"><i class="fa fa-dashboard"></i>柜员业务</a>
+                        <ul class="nav nav-second-level"> 
+                        <li>
+                        <a href="ui-elements.html"><i class="fa fa-desktop"></i>账户管理<span class="fa arrow"></span></a>
+                        </li>
+                        	<ul>
+                        		<li>
+                        		<a class="active-menu" href="#">开户业务</a>
+                        		</li><li>
+                        		<a class="active-menu" href="#">注册卡</a>
+                    			</li>
+                        		<li>
+                        		<a class="active-menu" href="#">存取款业务</a>
+                        		</li>
+                        		<li>
+                        		<a class="active-menu" href="#">查看交易流水</a>
+                        		</li>
+                        	</ul>
+                     	<li>
+                        <a href="chart.html"><i class="fa fa-bar-chart-o"></i>客户管理<span class="fa arrow"></span></a>
+							<ul>
+								<li>
+                        		<a class="active-menu" href="#">查看客户信息</a>
+                        		</li>
+								<li>
+                        		<a class="active-menu" href="#">查看交易流水 </a>
+                        		</li>
+							</ul>
+						</li>
+                        <li>
+                        		<a class="active-menu" href="#">退出</a>
+                        </li>
+                      </ul>
+                  -->
+				<li><a href="ui-elements.html"><i class="fa fa-desktop"></i>主管业务<span
+						class="fa arrow"></span></a>
+					<ul class="nav nav-second-level">
+						<li><a href="ui-elements.html"><i class="fa fa-desktop"></i>柜员管理<span
+								class="fa arrow"></span></a>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a href="${ctx}/teller/to_register"><i
+										class="fa fa-desktop"></i>新增柜员</a></li>
+							</ul>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a href="chart.html"><i class="fa fa-desktop"></i>柜员信息修改</a></li>
+							</ul></li>
+						<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>客户管理<span
+								class="fa arrow"></span></a>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>维护账户</a>
+								</li>
+							</ul>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>冻结/解冻客户</a>
+								</li>
+							</ul>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a class="chart.html" href="${ctx}/account/list.do"><i
+										class="fa fa-bar-chart-o"></i>查看账户信息</a></li>
+							</ul>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a class="chart.html"
+									href="${ctx}/customer/customerlist.do"><i
+										class="fa fa-bar-chart-o"></i>查看所有客户信息</a></li>
+							</ul>
+						<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>退出<span
+								class="fa arrow"></span></a></li>
+					</ul></li>
+				<li><a href="ui-elements.html"><i class="fa fa-desktop"></i>经理业务<span
+						class="fa arrow"></span></a>
+					<ul class="nav nav-second-level">
+						<li><a href="chart.html"><i class="fa fa-desktop"></i>柜员管理<span
+								class="fa arrow"></span></a>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>柜员权限管理</a></li>
+							</ul></li>
+						<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>主管管理<span
+								class="fa arrow"></span></a>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a class="chart.html" href="#"><i
+										class="fa fa-bar-chart-o"></i>增加主管</a></li>
+							</ul>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a class="chart.html" href="#"><i
+										class="fa fa-bar-chart-o"></i>主管权限管理</a></li>
+							</ul>
+							<ul class="nav nav-third-level" style="font-size: 14px">
+								<li><a class="chart.html" href="#"><i
+										class="fa fa-bar-chart-o"></i>主管信息管理</a></li>
+							</ul></li>
+						<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>增加权限等级<span
+								class="fa arrow"></span></a></li>
+						<li><a href="chart.html"><i class="fa fa-bar-chart-o"></i>退出<span
+								class="fa arrow"></span></a></li>
+					</ul></li>
+
+
+
+				<!--  <li>
+                        <a href="#"><i class="fa fa-sitemap"></i>客户业务<span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+							<li>
+                                <a href="#">开账户业务</a>
+                            </li>
+                            <li>
+                                <a href="#">存款业务</a>
+                            </li>
+                            <li>
+                                <a href="#">取款业务</a>
+                            </li>
+                            <li>
+                                <a href="#">转账业务</a>
+                            </li>
+                            <li>
+                                <a href="#">其他业务<span class="fa arrow"></span></a>
+                                <ul class="nav nav-third-level">
+                                    <li>
+                                        <a href="#">查看交易记录</a>
+                                    </li>
+                                    <li>
+                                        <a href="#">查看转账情况</a>
+                                    </li>
+                                </ul>
+
+                            </li>
+                        </ul>
+                    </li> -->
+
+				<li><a href="#"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+				</li>
+
+				<!--  <li>
+                        <a href="table.html"><i class="fa fa-table"></i> Responsive Tables</a>
+                    </li>
+                    <li>
+                        <a href="form.html"><i class="fa fa-edit"></i> Forms </a>
+                    </li> -->
+
+			</ul>
+
+		</div>
+
+		</nav>
+	</div>
+
+	<!-- 用户登录窗口 -->
+	<!--  <div class="cd-user-modal"> 
+					<div class="cd-user-modal-container">
+						<ul class="cd-switcher">
+				<li><a href="#0">用户登录</a></li>
+			</ul>
+
+			<div id="cd-login"> 登录表单
+				<form class="cd-form">
+					<p class="fieldset">
+						<label class="image-replace cd-username" for="signin-username">用户名</label>
+						<input class="full-width has-padding has-border" id="signin-username" type="text" placeholder="输入用户名">
+					</p>
+
+					<p class="fieldset">
+						<label class="image-replace cd-password" for="signin-password">密码</label>
+						<input class="full-width has-padding has-border" id="signin-password" type="password"  placeholder="输入密码">
+					</p>
+
+
+					<p class="fieldset">
+						<input class="full-width2" type="submit" value="登 录">
+					</p>
+				</form>
+			</div>
+
+
+			<a href="#0" class="cd-close-form">关闭</a>
+		</div>
+	</div> -->
+
+	<!-- 	<div class="row"> -->
+	<!-- 		<div class="col-md-6" style="width: 60%;text-align: center;"> -->
+	<!--    Striped Rows Table  -->
+	<!-- 			<div class="panel panel-default"> -->
+
+	<div id="page-wrapper">
+		<div id="page-inner">
+			<div class="row">
+				<div class="col-md-12">
+					<h1 class="page-header">
+						 <small>工号:${teller.tNumber}</small>
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <small>姓名:${teller.tName}</small> <br><br> 
+						<small><font size="6">新柜员注册/Registered Teller</font></small>
+					</h1>
+				</div>
+			</div>
+
+
+			<form action="${ctx}/teller/addTeller.do" method="POST" onsubmit="return before_submit()">
+				<div class="form-group input-group" style="width: 100px;">
+					<div class="form-group has-success">
+						<label class="control-label" for="inputSuccess">柜员名称/Name</label>
+						<input class="form-control" type="text" style="width: 250px;"
+							placeholder="柜员名称" name="tName" id="tName" onblur="check_tName()" value=""> 
+							<br><br><br>
+							<div id="show_info"></div>
+							
+							
+					</div>
+
+					<div class="form-group has-success">
+						<label class="control-label" for="inputSuccess">密码/Password</label>
+						<input type="password" class="form-control" 
+							style="width: 250px;" placeholder="登陆密码/Password" maxlength="18"
+							name="tPassword" id="tPassword" onblur="check_tPassword()" >
+							<br><br><br> 
+							<div id="show_tPassword"></div>
+							
+					</div>
+
+					<div class="form-group has-success">
+						<label class="control-label" for="inputSuccess">确认密码/Confirm
+							Password</label> <input type="password" class="form-control"
+							style="width: 250px;"  placeholder="确认密码/Confirm Password" 
+							name="tPassword_req" id="tPassword_req"
+							onblur="check_tPassword_req()"
+							maxlength="18"> 
+							<br><br><br>
+							<div id="show_tPassword_req"></div>
+							
+					</div>
+
+					<button type="submit" id ="submit_form" class="btn btn-primary">注册</button>
+					&nbsp&nbsp
+					<button type="reset" class="btn btn-primary">重置</button>
+				</div>
+			</form>
+
+
+			<!-- /.col-lg-6 (nested) -->
+		</div>
+
+		<!-- /.row (nested) -->
+	</div>
+
+
+	<!--  End  Striped Rows Table  -->
+	<!-- </div> -->
+	<!-- 	</div> -->
+
+	<!-- /. WRAPPER  -->
+	<!-- JS Scripts-->
+	<!-- jQuery Js -->
+
+	<!-- Bootstrap Js -->
+	<script src="${ctx}/style/assets/js/bootstrap.min.js"></script>
+
+	<!-- Metis Menu Js -->
+	<script src="${ctx}/style/assets/js/jquery.metisMenu.js"></script>
+	<!-- Morris Chart Js -->
+	<script src="${ctx}/style/assets/js/morris/raphael-2.1.0.min.js"></script>
+	<script src="${ctx}/style/assets/js/morris/morris.js"></script>
+
+
+	<script src="${ctx}/style/assets/js/easypiechart.js"></script>
+	<script src="${ctx}/style/assets/js/easypiechart-data.js"></script>
+
+	<script src="${ctx}/style/assets/js/Lightweight-Chart/jquery.chart.js"></script>
+
+	<!-- Custom Js -->
+	<script src="${ctx}/style/assets/js/custom-scripts.js"></script>
+
+	<script src="${ctx}/scripts/main.js"></script>
+
+	<script type="text/javascript">
+		function show() {
+
+			//
+		}
+	</script>
+</body>
+</html>

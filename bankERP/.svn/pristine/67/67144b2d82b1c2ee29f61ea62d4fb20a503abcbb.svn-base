@@ -1,0 +1,28 @@
+package com.vivebest.erp.utils;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.vivebest.erp.entity.Customer;
+import com.vivebest.erp.service.CustomerService;
+
+public class CollectTeller {
+	
+	@Autowired
+	private CustomerService customerService;
+	
+	public List<Customer> getAll()
+	{
+		return customerService.getAllCustomer();
+	}
+	
+	public static void main(String[] args) {
+		CollectTeller c=new CollectTeller();
+		System.out.println(">>>>>>>>>"+c.getAll());
+	}
+	
+	
+
+}
+

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.vivebest.erp.mapper.TellerMapper">
+	<resultMap id="baseResult" type="com.vivebest.erp.entity.Teller">
+		<id column="t_id" property="tId" jdbcType="INTEGER" javaType="int" />
+		<result column="t_number" property="tNumber" jdbcType="BIGINT"
+			javaType="long" />
+		<result column="t_name" property="tName" jdbcType="VARCHAR"
+			javaType="string" />
+		<result column="t_password" property="tPassword" jdbcType="VARCHAR"
+			javaType="string" />
+		<result column="aut_id" property="autId" jdbcType="INTEGER"
+			javaType="int" />
+		<result column="t_login_time" property="tLoginTime" jdbcType="TIMESTAMP"
+			javaType="java.sql.Timestamp" />
+		<result column="is_delete" property="isDelete" jdbcType="BOOLEAN"
+			javaType="boolean" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		t_id,t_number,t_name,t_password,aut_id,t_login_time,is_delete
+	</sql>
+
+	<!-- 查询柜员信息 -->
+	<select id="selectTeller" resultMap="baseResult"
+		parameterType="com.vivebest.erp.entity.Teller">
+		select
+		<include refid="Base_Column_List" />
+		from teller
+		<where>
+			<if test="tId != 0">t_id=#{tId}</if>
+			<if test="tNumber != 0"> AND t_number=#{tNumber}</if>
+			<if test="tName != null"> AND t_name=#{tName}</if>
+			<if test="tPassword != null">AND t_password=#{tPassword}</if>
+			<if test="autId != 0">AND aut_id=#{autId}</if>
+			<if test="tLoginTime != null">AND t_login_time=#{tLoginTime}</if>
+			<if test="isDelete != false">AND is_delete=#{isDelete}</if>
+		</where>
+	</select>
+
+	<!-- 添加柜员 --> <!-- useGeneratedKeys="true" keyProperty="tId" -->
+	<insert id="insertTeller" parameterType="com.vivebest.erp.entity.Teller">
+		insert into teller
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- <if test="tId != null">t_id,</if> -->
+			<if test="tNumber != null">t_number,</if>
+			<if test="tName != null">t_name,</if>
+			<if test="tPassword != null">t_password,</if>
+			<if test="autId != null">aut_id,</if>
+			<if test="tLoginTime != null">t_login_time,</if>
+			<if test="isDelete != null">is_delete</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<!-- <if test="tId != null">#{tId,jdbcType=INTEGER},</if> -->
+			<if test="tNumber != null">#{tNumber,jdbcType=BIGINT},</if>
+			<if test="tName != null">#{tName,jdbcType=VARCHAR},</if>
+			<if test="tPassword != null">#{tPassword,jdbcType=VARCHAR},</if>
+			<if test="autId != null">#{autId,jdbcType=INTEGER},</if>
+			<if test="tLoginTime != null">#{tLoginTime,jdbcType=TIMESTAMP},</if>
+			<if test="isDelete != null">#{isDelete,jdbcType=BIT}</if>
+		</trim>
+	</insert>
+
+	<!-- 修改柜员信息 -->
+	<update id="updateTeller" parameterType="com.vivebest.erp.entity.Teller">
+		update teller
+		<trim prefix="set" suffixOverrides=",">
+			<if test="tName !=null">t_name = #{tName},</if>
+			<if test="tNumber !=null">t_number = #{tNumber},</if>
+			<if test="tPassword !=null">t_password = #{tPassword},</if>
+			<if test="autId !=0">aut_id = #{autId},</if>
+			<if test="tLoginTime !=null">t_login_time = #{tLoginTime},</if>
+			<if test="isDelete !=null">is_delete = #{isDelete}</if>
+		</trim>
+		where
+		<if test="tId !=0">t_id = #{tId}</if>
+	</update>
+
+
+	<!-- 修改柜员（软删除） -->
+	<update id="deleteTeller" parameterType="com.vivebest.erp.entity.Teller">
+		update teller
+		<trim prefix="set" suffixOverrides=",">
+			<if test="isDelete !=null">is_delete = #{isDelete}</if>
+		</trim>
+		where
+		<if test="tId !=null">t_id = #{tId}</if>
+	</update>
+
+	<!-- 柜员登录 -->
+	<select id="tellerLogin" resultMap="baseResult"
+		parameterType="com.vivebest.erp.entity.Teller">
+		select
+		<include refid="Base_Column_List" />
+		from teller
+		<where>
+			<if test="tName != null"> AND t_name=#{tName}</if>
+			<if test="tPassword != null">AND t_password=#{tPassword}</if>
+		</where>
+	</select>
+
+	<!-- 查找当前最大的工号 -->
+	<select id="getMaxTNumber" resultType="long">
+		select
+		MAX(t_number)
+		from teller
+	</select>
+
+	<!-- 获取柜员信息 -->
+	<select id="getTellerMessage" resultMap="baseResult"
+		parameterType="com.vivebest.erp.entity.Teller">
+		select
+		<include refid="Base_Column_List" />
+		from teller
+		<where>
+			<if test="tName != 0">t_id = #{tId}</if>
+		</where>
+	</select>
+
+	<select id="getAllTeller" resultMap="baseResult"
+		parameterType="com.vivebest.erp.entity.Teller">
+		select
+		<include refid="Base_Column_List" />
+		from teller
+		<where>
+			<if test="isDelete != null">is_delete = #{isDelete}</if>
+		</where>
+	</select>
+
+</mapper>

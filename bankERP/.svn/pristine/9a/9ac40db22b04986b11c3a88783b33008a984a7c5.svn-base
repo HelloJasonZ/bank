@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- ti_id tr_number ti_out_num ti_in_num ti_balance ti_time ti_state ti_result 
+	is_delete -->
+<!-- INTEGER tiId, String trNumber, String tiOutNum, String tiInNum, BigDecimal 
+	tiBalance, boolean tiState, String tiResult -->
+
+<mapper namespace="com.vivebest.erp.mapper.TransferInfoMapper">
+	<sql id="columns">
+		ti_id,tr_number,ti_out_num,ti_in_num,ti_balance,ti_time,ti_state,ti_result,is_delete
+	</sql>
+	<insert id="insertToTransferInfo" parameterType="com.vivebest.erp.entity.TransferInfo">
+		insert into transfer_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="trNumber != null">
+				tr_number,
+			</if>
+			<if test="tiOutNum != null">
+				ti_out_num,
+			</if>
+			<if test="tiInNum != null">
+				ti_in_num,
+			</if>
+			<if test="tiBalance != null">
+				ti_balance,
+			</if>
+			<if test="tiTime != null">
+				ti_time,
+			</if>
+			<if test="tiState != null">
+				ti_state,
+			</if>
+			<if test="tiResult != null">
+				ti_result,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+		</trim>
+		<!-- ti_id tr_number ti_out_num ti_in_num ti_balance ti_time ti_state ti_result 
+			is_delete -->
+		<!-- INTEGER tiId, String trNumber, String tiOutNum, String tiInNum, BigDecimal 
+			tiBalance,Date tiTime, boolean tiState, String tiResult -->
+		<trim prefix=" values (" suffix=")" suffixOverrides=",">
+			<if test="trNumber != null">
+				#{trNumber},
+			</if>
+			<if test="tiOutNum != null">
+				#{tiOutNum},
+			</if>
+			<if test="tiInNum != null">
+				#{tiInNum},
+			</if>
+			<if test="tiBalance != null">
+				#{tiBalance},
+			</if>
+			<if test="tiTime != null">
+				#{tiTime},
+			</if>
+			<if test="tiState != null">
+				#{tiState},
+			</if>
+			<if test="tiResult != null">
+				#{tiResult},
+			</if>
+			<!-- 还有问题待处理 -->
+			<if test="isDelete != null">
+				#{isDelete},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- ti_id tr_number ti_out_num ti_in_num ti_balance ti_time ti_state ti_result 
+		is_delete -->
+	<!-- INTEGER tiId, String trNumber, String tiOutNum, String tiInNum, BigDecimal 
+		tiBalance,Date tiTime, boolean tiState, String tiResult -->
+
+	<resultMap id="baseResult" type="com.vivebest.erp.entity.TransferInfo">
+		<id property="tiId" column="ti_id" jdbcType="INTEGER" javaType="int" />
+		<result property="trNumber" column="tr_number" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="tiOutNum" column="ti_out_num" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="tiInNum" column="ti_in_num" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="tiBalance" column="ti_balance" jdbcType="DECIMAL"
+			javaType="java.math.BigDecimal" />
+		<result property="tiTime" column="ti_time" jdbcType="TIMESTAMP"
+			javaType="java.sql.Timestamp" />
+
+		<result property="tiState" column="ti_state" jdbcType="BOOLEAN"
+
+			javaType="boolean" />
+		<result property="tiResult" column="ti_result" jdbcType="VARCHAR"
+			javaType="string" />
+
+		<result property="isDelete" column="is_delete" jdbcType="BOOLEAN"
+			javaType="boolean" />
+	</resultMap>
+
+	<!-- 动态查询 -->
+	<select id="getAllTransferInfos" parameterType="com.vivebest.erp.entity.TransferInfo"
+		resultMap="baseResult">
+		SELECT
+		<include refid="columns" />
+		FROM customer
+		<where>
+			<if test="tiId!=null">ti_id=#{tiId},</if>
+			<if test="trNumber!=null">tr_number=#{trNumber},</if>
+			<if test="tiOutNum!=null">ti_out_num=#{tiOutNum},</if>
+			<if test="tiInNum!=null">ti_in_num=#{tiInNum},</if>
+			<if test="tiBalance!=null">ti_balance=#{tiBalance},</if>
+			<if test="tiTime!=null">ti_time=#{tiTime},</if>
+			<if test="tiState!=NULL">ti_state=#{tiState},</if>
+			<if test="tiResult!=null">ti_result=#{tiResult},</if>
+			<if test="isDelete!=null">is_delete=#{isDelete}</if>
+		</where>
+	</select>
+
+
+
+	<select id="selectAllTransferInfo" parameterType="com.vivebest.erp.entity.TransferInfo"
+		resultMap="baseResult">
+		select ti_id, tr_number, ti_out_num, ti_in_num
+		, ti_balance, ti_time,
+		ti_state, ti_result,is_delete
+		from transfer_info
+		<where>
+			<if test=" tiOutNum !=null and tiOutNum != '' ">
+				ti_out_num = #{tiOutNum}
+			</if>
+			<if test=" trNumber !=null and trNumber != '' ">
+				and tr_number = #{trNumber}
+			</if>
+			<!-- <if test=" isDelete !=false "> and is_delete = #{isDelete} </if> -->
+			and is_delete = 1
+		</where>
+	</select>
+
+	<select id="selectTotalRecord" parameterType="com.vivebest.erp.entity.TransferInfo"
+		resultType="int">
+		SELECT COUNT(*) FROM transfer_info
+		<where>
+			<if test=" tiOutNum !=null and tiOutNum != '' ">
+				ti_out_num = #{tiOutNum}
+			</if>
+			and is_delete = 1
+		</where>
+	</select>
+
+	<select id="selectAllTransferInfo2" parameterType="map"
+		resultMap="baseResult">
+		select ti_id, tr_number, ti_out_num, ti_in_num
+		, ti_balance, ti_time,
+		ti_state, ti_result,is_delete
+		from transfer_info
+		<where>
+			<if test=" tiOutNum !=null and tiOutNum != '' ">
+				ti_out_num = #{tiOutNum}
+			</if>
+			<if test=" trNumber !=null and trNumber != '' ">
+				and tr_number = #{trNumber}
+			</if>
+			<!-- <if test=" isDelete !=false "> and is_delete = #{isDelete} </if> -->
+			and is_delete = 1
+			limit #{page.index},#{page.pageSize}
+		</where>
+	</select>
+
+	<select id="selectTotalRecord2" parameterType="map" resultType="int">
+		SELECT COUNT(*) FROM transfer_info
+		<where>
+			<if test="transferInfo.tiOutNum !=null and transferInfo.tiOutNum != '' ">
+				ti_out_num = #{transferInfo.tiOutNum}
+			</if>
+			<if test=" minDate !=null and maxDate !=null">
+			<![CDATA[and ti_time between #{minDate} and #{maxDate}]]>
+			</if>
+			and is_delete = 1
+		</where>
+	</select>
+
+	<select id="selectAllTransferInfo3" parameterType="map"
+		resultMap="baseResult">
+		select ti_id, tr_number, ti_out_num, ti_in_num
+		, ti_balance, ti_time,
+		ti_state, ti_result,is_delete
+		from transfer_info
+		<where>
+			<if test="transferInfo.tiOutNum!=null">
+				ti_out_num = #{transferInfo.tiOutNum}
+			</if>
+
+			<if test=" minDate !=null and maxDate !=null">
+				and ti_time between #{minDate} and #{maxDate}
+			</if>
+			and is_delete = 1
+			limit #{page.index},#{page.pageSize}
+		</where>
+	</select>
+
+
+	<update id="updateTransferInfo" parameterType="com.vivebest.erp.entity.TransferInfo">
+		update transfer_info
+		<set>
+			<if test="isDelete !=true ">
+				is_delete=#{isDelete}
+			</if>
+		</set>
+		<where>
+			<if test="trNumber !=null and trNumber != '' ">
+				tr_number = #{trNumber}
+			</if>
+		</where>
+
+	</update>
+
+</mapper>

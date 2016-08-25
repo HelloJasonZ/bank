@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	
+	xsi:schemaLocation="
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+     http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+     http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+	
+	
+	<!-- 加载 properties配置文件-->
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+	
+	<!-- 扫描控制器包 -->
+	<!-- @Service用于标注业务层组件、 @Controller用于标注控制层组件、@Repository用于标注数据访问组件，即DAO组件。而@Component泛指组件，当组件不好归类的时候，我们可以使用这个注解进行标注。-->
+	<context:component-scan base-package="com.vivebest.erp.service" />
+	
+
+	<!--   ***************以下是dataSource 和 Mybatis配置******************  -->
+	
+	<!-- dataSource -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<property name="driverClassName" value="${dataSource.driverClassName}"/>
+	    <property name="url" value="${dataSource.url}"/>
+		<property name="username" value="${dataSource.username}" />
+		<property name="password" value="${dataSource.password}" />
+	    <property name="initialSize" value="${dataSource.initialSize}"/>
+	    <property name="maxActive" value="${dataSource.maxActive}"/>
+	    <property name="maxWait" value="30000"/>
+	    <property name="maxIdle" value="${dataSource.maxIdle}"/>
+	    <property name="minIdle" value="${dataSource.minIdle}"/>
+	    <property name="validationQuery" value="${dataSource.validationQuery}"/>
+	    <property name="testWhileIdle" value="${dataSource.testWhileIdle}"/>
+	    <property name="testOnBorrow" value="${dataSource.testOnBorrow}"/>
+	    <property name="testOnReturn" value="${dataSource.testOnReturn}"/>
+		<property name="timeBetweenEvictionRunsMillis" value="${dataSource.timeBetweenEvictionRunsMillis}" />
+		<property name="minEvictableIdleTimeMillis" value="${dataSource.minEvictableIdleTimeMillis}" />
+	    <property name="poolPreparedStatements" value="${dataSource.poolPreparedStatements}" />
+	    <property name="maxPoolPreparedStatementPerConnectionSize" value="${dataSource.maxPoolPreparedStatementPerConnectionSize}" />
+		<property name="filters" value="${dataSource.filters}" />
+	</bean>
+	
+
+    <!-- define the SqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="configLocation" value="classpath:mybatis-config.xml" />
+        <property name="typeAliasesPackage" value="com.vivebest.erp.entity" /> 
+  		<!--  <property name="mapperLocations" value="classpath:confing/mapper/*/*/*Mapper.xml"></property> --> <!-- 当配置文件在其他目录时 -->
+    </bean>
+    
+    <!-- scan for mappers and let them be autowired -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
+       <property name="basePackage" value="com.vivebest.erp.mapper"/>
+    </bean> 	
+    
+    
+	
+	<!--   ***************以下是事务配置******************  -->
+	
+	<!-- 事务管理  transaction manager, use JtaTransactionManager for global tx -->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+    
+    <!-- 第一种：*********** 采用@Transactional注解方式使用事务  -->
+  	<!-- <tx:annotation-driven transaction-manager="txManager"/> -->
+  	
+  	
+  	
+    <!--第二种：************ 声明事务通知 -->  
+    <tx:advice id="txAdvice" transaction-manager="txManager">  
+        <tx:attributes>  
+            <!-- propagation="REQUIRED"代表支持当前事务，如果当前没有事务，就新建一个事务。这是最常见的选择。 -->  
+            <tx:method name="select*" propagation="SUPPORTS" rollback-for="java.lang.Exception"/>
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+            <tx:method name="insert*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>            
+        </tx:attributes>  
+    </tx:advice>  
+      
+    <!-- 声明式事务管理:定义切面 -->  
+    <aop:config>  
+        <!-- 定义切入点 expression="execution(* com.vivebest.spring.service.*.*(..))"   其中第一个*代表返回值，第二*代表service下子包，第三个*代表方法名，“（..）”代表方法参数。   注意第一个*后面要打一个空格，要不然会报表达式错误-->  
+        <aop:pointcut expression="execution(* com.vivebest.erp.service.*.*(..))"  id="serviceMethod" />  
+        <!-- 把切入点和事务通知联系起来 -->  
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod"/>  
+    </aop:config>    	
+  	
+	
+</beans>

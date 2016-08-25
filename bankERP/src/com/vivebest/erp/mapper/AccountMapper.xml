@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vivebest.erp.mapper.AccountMapper">
+	<sql id="columns">
+		ac_id,ac_password,ac_balance,ac_create_time,ac_create_address,ac_state,cus_id,ac_number,ac_currency,t_id,is_delete
+	</sql>
+
+	<resultMap id="baseResult" type="com.vivebest.erp.entity.Account">
+		<id property="acId" column="ac_id" jdbcType="INTEGER" javaType="int" />
+		<result property="acPassword" column="ac_password" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="acBalance" column="ac_balance" jdbcType="DECIMAL"
+			javaType="java.math.BigDecimal" />
+		<result property="acCreateTime" column="ac_create_time"
+			jdbcType="TIMESTAMP" javaType="java.sql.Timestamp" />
+		<result property="acCreateAddress" column="ac_create_address"
+			jdbcType="VARCHAR" javaType="string" />
+		<result property="acState" column="ac_state" jdbcType="BOOLEAN"
+			javaType="boolean" />
+		<result property="acNumber" column="ac_number" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="acCurrency" column="ac_currency" jdbcType="VARCHAR"
+			javaType="string" />
+		<result property="cusId" column="cus_id" jdbcType="INTEGER"
+			javaType="int" />
+		<result property="tId" column="t_id" jdbcType="INTEGER"
+			javaType="int" />
+		<result property="isDelete" column="is_delete" jdbcType="BOOLEAN"
+			javaType="boolean" />
+	</resultMap>
+
+
+
+	<select id="selectFromAccount" parameterType="com.vivebest.erp.entity.Account"
+		resultMap="baseResult">
+		SELECT
+		<include refid="columns" />
+		FROM account
+		<where>
+			<if test="acId!=0">ac_id=#{acId}</if>
+			<if test="acPassword!=null">AND ac_password=#{acPassword}</if>
+			<if test="acBalance!=null">AND ac_balance=#{acBalance}</if>
+			<if test="acCreateTime!=null">AND ac_create_time=#{acCreateTime}</if>
+			<if test="acCreateAddress!=null">AND ac_create_address=#{acCreateAddress}</if>
+			<if test="acState!=null">AND ac_state=#{acState}</if>
+			<if test="cusId!=0">AND cus_id=#{cusId}</if>
+			<if test="acNumber!=null">AND ac_number=#{acNumber}</if>
+			<if test="tId!=0">AND t_id=#{tId}</if>
+			<if test="acCurrency!=null">AND ac_currency=#{acCurrency}</if>
+			<!-- AND is_delete=1 -->
+			<if test="isDelete!=null">AND is_delete=#{isDelete}</if>
+		</where>
+	</select>
+
+	<select id="getAccountsOfCustomer" parameterType="java.lang.Integer"
+		resultMap="baseResult">
+		SELECT
+		<include refid="columns" />
+		FROM account
+		<where>
+			cus_id=#{cusId}
+		</where>
+	</select>
+
+
+	<select id="getAllAccounts" resultMap="baseResult">
+		SELECT
+		<include refid="columns" />
+		FROM account
+	</select>
+	<select id="selectTotalRecord" parameterType="map"
+		resultType="int">
+		SELECT COUNT(*) FROM account
+		<where>
+			<if test="customer.cusId!=0">cus_id=#{customer.cusId}</if>
+			<if test="account.acNumber!=null">AND ac_number=#{account.acNumber}</if>
+		</where>
+	</select>
+
+	<select id="getAllAccount2" parameterType="map" resultMap="baseResult">
+		select
+		<include refid="columns" />
+		from account
+		<where>
+			<if test="customer.cusId!=0">cus_id=#{customer.cusId}</if>
+			<if test="account.acNumber!=null">
+				AND ac_number=#{account.acNumber}
+			</if>
+		</where>
+		limit #{page.index},#{page.pageSize}
+	</select>
+
+	<update id="updateAccount" parameterType="com.vivebest.erp.entity.Account">
+		UPDATE account
+		<trim prefix="set" suffixOverrides=",">
+			<!-- <if test="acId!=0">ac_id=#{acId},</if> -->
+			<if test="acPassword!=null">ac_password=#{acPassword},</if>
+			<if test="acBalance!=null">ac_balance=#{acBalance},</if>
+			<if test="acCreateTime!=null">ac_create_time=#{acCreateTime},</if>
+			<if test="acCreateAddress!=null">ac_create_address=#{acCreateAddress},</if>
+			<if test="acState!=null">ac_state=#{acState},</if>
+			<if test="cusId!=0">cus_id=#{cusId},</if>
+			<if test="acNumber!=null">ac_number=#{acNumber},</if>
+			<if test="tId!=0">t_id=#{tId},</if>
+			<if test="acCurrency!=null">ac_currency=#{acCurrency},</if>
+			<if test="isDelete!=null">is_delete=#{isDelete}</if>
+		</trim>
+		WHERE
+		<if test="acId!=null">
+			ac_Id=#{acId}
+		</if>
+	</update>
+
+	<insert id="insertToAccount" parameterType="com.vivebest.erp.entity.Account"
+		useGeneratedKeys="true" keyProperty="acId">
+		INSERT INTO account
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="acId!=0">ac_id,</if>
+			<if test="acPassword!=null">ac_password,</if>
+			<if test="acBalance!=null">ac_balance,</if>
+			<if test="acCreateTime!=null">ac_create_time,</if>
+			<if test="acCreateAddress!=null">ac_create_address,</if>
+			<if test="acState!=null">ac_state,</if>
+			<if test="acNumber!=null">ac_number,</if>
+			<if test="acCurrency!=null">ac_currency,</if>
+			<if test="cusId!=0">cus_id,</if>
+			<if test="tId!=0">t_id,</if>
+			<if test="isDelete!=null">is_delete</if>
+		</trim>
+		VALUES
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="acId!=0">#{acId},</if>
+			<if test="acPassword!=null">#{acPassword},</if>
+			<if test="acBalance!=null">#{acBalance},</if>
+			<if test="acCreateTime!=null">#{acCreateTime},</if>
+			<if test="acCreateAddress!=null">#{acCreateAddress},</if>
+			<if test="acState!=false">#{acState},</if>
+			<if test="acNumber!=null">#{acNumber},</if>
+			<if test="acCurrency!=null">#{acCurrency},</if>
+			<if test="cusId!=0">#{cusId},</if>
+			<if test="tId!=0">#{tId},</if>
+			<if test="isDelete!=null">#{isDelete}</if>
+		</trim>
+	</insert>
+
+	<update id="deleteAccount" parameterType="com.vivebest.erp.entity.Account">
+		UPDATE account
+		<trim prefix="set" suffixOverrides=",">
+			<if test="isDelete!=true">
+				is_delete=#{isDelete},
+			</if>
+		</trim>
+		WHERE
+		<if test="acId!=null">
+			ac_id=#{acId}
+		</if>
+	</update>
+</mapper>

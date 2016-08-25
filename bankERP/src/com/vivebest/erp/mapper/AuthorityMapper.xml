@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vivebest.erp.mapper.AuthorityMapper">
+
+	<sql id="columns">
+		aut_id,aut_content,is_delete
+	</sql>
+
+	<resultMap id="baseResult" type="com.vivebest.erp.entity.Authority">
+		<id column="aut_id" property="autId"  jdbcType="INTEGER" javaType="int" />
+		<result column="aut_content" property="autContent"  jdbcType="VARCHAR"
+			javaType="string" />
+		<result column="is_delete" property="isDelete"  jdbcType="BOOLEAN"
+			javaType="boolean" />
+
+	</resultMap>
+
+	<select id="selectFromAuthority" parameterType="com.vivebest.erp.entity.Authority"
+		resultMap="baseResult">
+		SELECT
+		<include refid="columns" />
+		FROM authority
+		<where>
+			<if test="autId!=0">
+				aut_id=#{autId}
+			</if>
+			<if test="autContent!=null">
+				AND aut_content=#{autContent}
+			</if>
+			<if test="isDelete!=null">
+				AND is_delete=#{isDelete}
+			</if>
+		</where>
+	</select>
+
+	<update id="updateAuthority" parameterType="com.vivebest.erp.entity.Authority">
+		UPDATE authority SET
+		<set>
+		<if test="autContent!=null">
+			aut_content=#{autContent},
+		</if>
+		<if test="isDelete!=null">
+			is_delete=#{isDelete},
+		</if>
+		</set>
+		WHERE
+		<if test="autId!=null">
+			autId=#{autId},
+		</if>
+		<if test="autContent!=null">
+			AND autContent=#{autContent},
+		</if>
+		<if test="isDelete! =null">
+			AND isDelete=#{isDelete}
+		</if>
+
+	</update>
+
+	<insert id="insertToAuthority" parameterType="com.vivebest.erp.entity.Authority"
+		useGeneratedKeys="true" keyProperty="autId">
+		INSERT INTO authority
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="autId!=0">aut_id,</if>
+			<if test="autContent!=null">aut_content,</if>
+			<if test="isDelete!=null">is_delete</if>
+		</trim>
+		VALUES
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="autId!=0">#{autId},</if>
+			<if test="autContent!=null">#{autContent},</if>
+			<if test="isDelete!=null">#{isDelete}</if>
+		</trim>
+	</insert>
+	
+	
+	<select id="getAllAu" resultMap="baseResult" parameterType="com.vivebest.erp.entity.Authority" >
+	SELECT
+   <include refid="columns" />
+    from authority
+    <where>
+    	<if test="isDelete != null">is_delete = #{isDelete}</if>
+    </where>  	
+  </select>
+</mapper>

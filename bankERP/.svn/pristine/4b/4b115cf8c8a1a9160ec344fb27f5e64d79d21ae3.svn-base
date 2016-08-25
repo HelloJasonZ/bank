@@ -1,0 +1,405 @@
+package com.vivebest.erp.control;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.vivebest.erp.entity.Account;
+import com.vivebest.erp.entity.Customer;
+import com.vivebest.erp.entity.Page;
+import com.vivebest.erp.entity.Teller;
+import com.vivebest.erp.entity.TransferInfo;
+import com.vivebest.erp.service.AccountService;
+import com.vivebest.erp.service.CustomerService;
+import com.vivebest.erp.service.TransferInfoService;
+import com.vivebest.erp.utils.AccountUtils;
+import com.vivebest.erp.utils.MD5;
+
+@Controller
+@RequestMapping("/account")
+public class AccountControl {
+
+	/**
+	 * 使用model来设置参数，页面可以直接获取
+	 * 
+	 * @param user
+	 * @param model
+	 * @return
+	 */
+	@Autowired
+	private AccountService accountService;
+	@Autowired
+	private TransferInfoService transferInfoService;
+	@Autowired
+	private CustomerService customerService;
+
+	@RequestMapping(value = "/loginSubmit", method = RequestMethod.POST)
+	public String checkPasswordSubmit(Account account, Model model,
+			HttpSession httpSession) throws ClassNotFoundException,
+			SQLException, IOException {
+		model.addAttribute("account", account);
+		Boolean flag = accountService.checkAccountPassword(account);
+		String result = null;
+		if (flag) {
+			result = "account/rightAccount";
+			httpSession.setAttribute("accountinfo", account);
+		} else {
+			result = "account/wrongAccount";
+		}
+		return result;
+	}
+
+	@RequestMapping(value = "/getMoneySubmit", method = RequestMethod.POST)
+	@ResponseBody
+	public String getMoneySubmit(@RequestParam String acNumber,
+			@RequestParam String money, @RequestParam String password,
+			HttpSession session) {
+		Customer customer = (Customer) session.getAttribute("customer");
+		Teller teller = (Teller) session.getAttribute("teller");
+		if (customer != null) {
+			// putmoney
+			Account account = new Account();
+			account.setAcNumber(acNumber);
+
+			String encodepassword = MD5.encode(password);
+			account.setAcPassword(encodepassword);
+			account.setAcNumber(acNumber);
+			Boolean flag = accountService.checkAccountPassword(account);
+			if (flag) {
+				Boolean flag1 = accountService.getMoney(account,
+						new BigDecimal(money));
+				if (flag1) {
+					return "1";
+				} else {
+					return "-2";
+				}
+			} else {
+				return "-1";
+			}
+
+		} else if (teller == null && customer == null) {
+			return "0";
+		} else {
+			return "0";
+		}
+	}
+
+	@RequestMapping(value = "/saveMoneySubmit", method = RequestMethod.POST)
+	@ResponseBody
+	public String saveMoneySubmit(@RequestParam String acNumber,
+			@RequestParam String money, HttpSession session) {
+		Customer customer = (Customer) session.getAttribute("customer");
+		Teller teller = (Teller) session.getAttribute("teller");
+		List<Account> list = new ArrayList<>();
+		if (customer != null) {
+			// putmoney
+			Account account = new Account();
+			account.setAcNumber(acNumber);
+			accountService.saveMoney(account, new BigDecimal(money));
+			// ok
+			return "1";
+		} else if (teller == null && customer == null) {
+			return "0";
+		} else {
+			return "0";
+		}
+	}
+
+	@RequestMapping(value = "/transferAccountsSubmit", method = RequestMethod.POST)
+	@ResponseBody
+	public String transMoneySubmit(@RequestParam String acNumber,
+			@RequestParam String objectNumber, @RequestParam String password,
+			@RequestParam String transferMoney, HttpSession session) {
+		Customer customer = (Customer) session.getAttribute("customer");
+		Teller teller = (Teller) session.getAttribute("teller");
+		List<Account> list = new ArrayList<>();
+		if (customer != null) {
+			// transfermoney
+			Account account = new Account();
+			String encodepassword = MD5.encode(password);
+			account.setAcPassword(encodepassword);
+			account.setAcNumber(acNumber);
+
+			Account objaccount = new Account();
+			objaccount.setAcNumber(objectNumber);
+			objaccount.setIsDelete(true);
+			Account a = accountService.selectFromAccount(objaccount);
+			if (a != null) {
+				Boolean flag = accountService.checkAccountPassword(account);
+				if (flag) {
+					Boolean flag1 = accountService.updateTransferMoney(account,
+							new BigDecimal(transferMoney), objaccount);
+					if (flag1) {
+						return "1";// 转账成功
+					} else {
+						return "2";// 余额不足
+					}
+				} else {
+					return "-1";// -1代表密码不正确
+				}
+			} else {
+				TransferInfo transferInfo = new TransferInfo();
+				String trNumber = account.getAcNumber().substring(15)
+						+ System.currentTimeMillis();
+				Date trTime = new Date();
+				transferInfo.setTrNumber(trNumber);
+				transferInfo.setTiBalance(new BigDecimal(transferMoney));
+				transferInfo.setTiInNum(objaccount.getAcNumber());
+				transferInfo.setTiOutNum(account.getAcNumber());
+				transferInfo.setDelete(true);
+				transferInfo.setTiTime(new Date());
+				transferInfo.setTiState(false);
+				transferInfo.setTiResult("转账失败");
+				transferInfoService.insertTransferInfo(transferInfo);
+				return "3";// 3代表账号不存在
+			}
+
+		} else if (teller == null && customer == null) {
+			return "0";// 代表柜员没登陆
+		} else {
+			return "0";
+		}
+	}
+
+	// 跳转管理卡数界面
+	@RequestMapping(value = "/forwardAccounts", method = RequestMethod.GET)
+	public String forwardAccounts(HttpSession session,
+			HttpServletRequest httpRequest) {
+		Customer customer = (Customer) session.getAttribute("customer");
+		Teller teller = (Teller) session.getAttribute("teller");
+		List<Account> list = new ArrayList<>();
+		List<Account> no_show = new ArrayList<>();
+		if (customer != null) {
+			// 通过用户查询卡号
+			list = accountService.getAccountsOfCustomer(customer.getCusId());
+			// 卡号屏蔽
+			for (Account a : list) {
+				a.setNoShowNumber(AccountUtils.transferString(a.getAcNumber()));
+				no_show.add(a);
+			}
+			httpRequest.setAttribute("list", no_show);
+			return "customer/show_customer_account";
+		} else if (teller == null && customer == null) {
+			return "teller/home";
+		} else {
+			return "teller/home";
+		}
+	}
+
+	// 增加页面账号
+	@RequestMapping(value = "/forwardaddAccount", method = RequestMethod.GET)
+	public String forwardaddAccount(HttpSession session,
+			HttpServletRequest httpRequest) {
+		Customer customer = (Customer) session.getAttribute("customer");
+		if (customer != null) {
+			// 跳转到注册卡号页面
+			return "customer/reg_card";
+		} else {
+			return "teller/home";
+		}
+	}
+
+	// 自动生成卡号
+	@RequestMapping(value = "/autoAccount", method = RequestMethod.POST)
+	@ResponseBody
+	public String autoAccount(Model model, HttpSession session,
+			HttpServletRequest httpRequest) {
+		long cardNum = 0;
+		Customer customer = (Customer) session.getAttribute("customer");
+		Teller teller = (Teller) session.getAttribute("teller");
+		List<Account> list = new ArrayList<>();
+		if (customer != null) {
+			// 生成卡号
+			Date d = new Date();
+			SimpleDateFormat sd = new SimpleDateFormat("yyyyMMddHHmmss");
+			String c = 62260 + sd.format(d);
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>C时间" + c);
+			cardNum = Long.valueOf(c);
+			Account a = new Account();
+			a.setAcNumber(c);
+
+			if (accountService.selectFromAccount(a) != null) {
+				// 有重复卡号再自动生成
+				sd = new SimpleDateFormat("yyyyMMddHHmmss");
+				c = 62269 + sd.format(d);
+				cardNum = Long.valueOf(c);
+			}
+			return String.valueOf(cardNum);
+		} else if (teller == null && customer == null) {
+			return "0";
+		} else {
+			return "0";
+		}
+	}
+
+	// 注册卡号
+	// 自动生成卡号
+	@RequestMapping(value = "/addCustomerAccount", method = RequestMethod.POST)
+	@ResponseBody
+	public String addCustomerAccount(@RequestParam String cusNumber,
+			@RequestParam String address, @RequestParam String password,
+			HttpSession session, HttpServletRequest httpRequest) {
+		Customer customer = (Customer) session.getAttribute("customer");
+		Teller teller = (Teller) session.getAttribute("teller");
+		List<Account> list = new ArrayList<>();
+		if (customer != null) {
+			// 注册
+			Account account = new Account();
+			account.setAcNumber(cusNumber);
+			account.setAcCreateAddress(address);
+			account.setAcPassword(MD5.encode(password.trim()));
+			account.setAcBalence(new BigDecimal(0));
+			account.setAcCreateTime(new Date());
+			account.setCusId(customer.getCusId());
+			account.setAcCurrency("CNY");
+			account.settId(teller.gettId());
+			account.setAcState(true);
+			account.setIsDelete(true);
+			accountService.insertToAccount(account);// 插入数据库中
+			return "1";
+		} else if (teller == null && customer == null) {
+			return "0";
+		} else {
+			return "0";
+		}
+	}
+
+	// 业务操作
+	@RequestMapping(value = "/forwardAction", method = RequestMethod.GET)
+	public String forwardAction(@RequestParam String acNumber,
+			HttpSession session, HttpServletRequest httpRequest) {
+		Customer customer = (Customer) session.getAttribute("customer");
+		Teller teller = (Teller) session.getAttribute("teller");
+		List<Account> list = new ArrayList<>();
+		if (customer != null) {
+			// 注册
+			// 获取卡的
+			Account account = new Account();
+			account.setAcNumber(acNumber);
+			Account a = accountService.selectFromAccount(account);
+			httpRequest.setAttribute("account", a);
+			return "customer/action_customer_account";
+		} else if (teller == null && customer == null) {
+			return "teller/login";
+		} else {
+			return "teller/login";
+		}
+	}
+
+	// 分页
+	@RequestMapping(value = "/list.do", method = RequestMethod.GET)
+	public String selectAllTransferInfo(HttpServletRequest request,
+			HttpSession session, Map<String, Object> map) {
+		Teller teller = (Teller) session.getAttribute("teller");
+		if (teller == null) {
+			return "teller/login";
+		} else {
+			String path = null;
+			String pageNumber = request.getParameter("pageNumber");
+			int pageSize = 3;
+			Account account = new Account();
+			String cusIdCard = request.getParameter("cusIdCard");
+			String acNumber = request.getParameter("acNumber");
+			Customer cus = new Customer();
+			if (cusIdCard == "") {
+				cusIdCard = null;
+			}
+			if (acNumber == "") {
+				acNumber = null;
+			}
+			if ((cusIdCard != null) && (acNumber == null)) {
+				cus.setCusIdCard(cusIdCard);
+				Customer customer = customerService.getCustomer(cus);
+				account.setCustomer(customer);
+				cus.setCusId(customer.getCusId());
+				path = "/bankERP/account/list.do?cusIdCard=" + cusIdCard + "&";
+			} else if ((cusIdCard == null) && (acNumber != null)) {
+				account.setAcNumber(acNumber);
+				path = "/bankERP/account/list.do?acNumber=" + acNumber + "&";
+			} else if ((cusIdCard != null) && (acNumber != null)) {
+				cus.setCusIdCard(cusIdCard);
+				Customer customer = customerService.getCustomer(cus);
+				account.setCustomer(customer);
+				account.setAcNumber(acNumber);
+				account.setCusId(customer.getCusId());
+				path = "/bankERP/account/list.do?cusIdCard=" + cusIdCard
+						+ "&acNumber=" + acNumber + "&";
+			} else {
+				path = "/bankERP/account/list.do?";
+			}
+			List<Account> list_no_show = new ArrayList<>();
+			Page<Account> page = accountService.getAllAccount2(pageNumber,
+					pageSize, account, cus);
+			List<Account> data = page.getData();
+			if (data!=null) {
+				// 卡号屏蔽
+				for (Account a : data) {
+					a.setNoShowNumber(AccountUtils.transferString(a
+							.getAcNumber()));
+					a.setNoShowMoney("****元");
+					list_no_show.add(a);
+					System.out.println(a.toString());
+				}
+			}
+
+			page.setData(list_no_show);
+			page.setPath(path);
+			map.put("page", page);
+			return "page/account_list";
+		}
+	}
+
+	// 获取账号详细信息
+	@RequestMapping(value = "/getAccoutMessage", method = RequestMethod.POST)
+	@ResponseBody
+	public Account getAccoutMessage(HttpServletRequest request,
+			@RequestParam String id) {
+		Account a = new Account();
+		a.setAcId(Integer.parseInt(id));
+		Account account = accountService.selectFromAccount(a);
+		return account;
+	}
+
+	// 更新维护状态
+	@RequestMapping(value = "/updateAccount", method = RequestMethod.POST)
+	@ResponseBody
+	public String updateAccount(HttpSession httpSession,
+			@RequestParam String acId, @RequestParam String auId) {
+		Teller teller = (Teller) httpSession.getAttribute("teller");
+		if (teller == null) {
+			// 用户失效重新登陆
+			return "0";
+		} else {
+			Account a = new Account();
+			a.setAcId(Integer.parseInt(acId));
+			Account account = accountService.selectFromAccount(a);
+			if (auId.equals("1")) {
+				// 正常
+				account.setAcState(true);
+			} else if (auId.equals("0")) {
+				// 失效
+				account.setAcState(false);
+			}
+			accountService.updateAccount(account);
+			return "1";
+		}
+	}
+
+}

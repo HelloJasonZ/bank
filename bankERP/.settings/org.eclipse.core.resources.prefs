@@ -1,0 +1,15 @@
+eclipse.preferences.version=1
+encoding//WebRoot/scripts/js/verificationNumbers.js=UTF-8
+encoding//src/com/vivebest/erp/control/AccountControl.java=UTF-8
+encoding//src/com/vivebest/erp/control/CustomerControl.java=UTF-8
+encoding//src/com/vivebest/erp/control/TellerControl.java=UTF-8
+encoding//src/com/vivebest/erp/control/TransactionsControl.java=UTF-8
+encoding//src/com/vivebest/erp/entity/Page.java=UTF-8
+encoding//src/com/vivebest/erp/service/impl/AccountServiceImpl.java=UTF-8
+encoding//src/com/vivebest/erp/service/impl/AuthorityServiceImpl.java=UTF-8
+encoding//src/com/vivebest/erp/service/impl/CustomerServiceImpl.java=UTF-8
+encoding//src/com/vivebest/erp/service/impl/TransactionsServiceImpl.java=UTF-8
+encoding//src/com/vivebest/erp/utils/AccountUtils.java=UTF-8
+encoding//src/com/vivebest/erp/utils/AutoCollect.java=UTF-8
+encoding//src/com/vivebest/erp/utils/DBConnection.java=UTF-8
+encoding//src/com/vivebest/erp/utils/ExcelUtils.java=UTF-8

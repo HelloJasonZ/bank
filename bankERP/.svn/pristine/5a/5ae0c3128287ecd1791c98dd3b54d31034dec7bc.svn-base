@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ <mapper namespace="com.vivebest.erp.mapper.CustomerMapper" >
+ 
+  <resultMap id="baseResult" type="com.vivebest.erp.entity.Customer" >
+    <id column="cus_id" property="cusId" jdbcType="INTEGER" javaType="int"/>
+    <result column="cus_name" property="cusName" jdbcType="VARCHAR" javaType="string"/>
+    <result column="cus_password" property="cusPassword" jdbcType="VARCHAR" javaType="string"/>
+    <result column="cus_phone" property="cusPhone" jdbcType="VARCHAR" javaType="string"/>
+    <result column="cus_idcard" property="cusIdCard" jdbcType="VARCHAR" javaType="string"/>
+    <result column="cus_email" property="cusEmail" jdbcType="VARCHAR" javaType="string"/>
+    <result column="cus_address" property="cusAddress" jdbcType="VARCHAR" javaType="string"/>
+    <result column="cus_state" property="cusState" jdbcType="BIT" javaType="boolean"/>
+    <result column="cus_create_time" property="cusCreateTime" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp"/>
+    <result column="cus_login_time" property="cusLoginTime" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp"/>
+    <result column="t_id" property="tId" jdbcType="INTEGER" javaType="int"/>
+    <result column="is_delete" property="isDelete" jdbcType="BIT" javaType="boolean"/>
+  </resultMap>
+  	<sql id="columns">
+		cus_id,cus_name,cus_password,cus_phone,cus_idcard,cus_email,cus_address,cus_state,
+		cus_create_time,cus_login_time,t_id,is_delete
+	</sql>
+  <!-- 得到客户信息 -->
+  <select id="getAllCustomer" parameterType="com.vivebest.erp.entity.Customer"
+		resultMap="baseResult">
+		SELECT
+	<include refid="columns" />
+		FROM customer
+	</select>
+	
+	<!-- 通过多种途径得到客户信息(使用状态是必须添加其他字段来判断)  -->
+	<select id="getCustomer" parameterType="com.vivebest.erp.entity.Customer"
+		resultMap="baseResult">
+		SELECT
+		<include refid="columns" />
+		FROM customer
+		<where>
+		  <if test="cusId!=0">cus_id=#{cusId}</if>
+		  <if test="cusName!=null and cusName!=''"> and cus_name=#{cusName}</if>
+		  <if test="cusPassword!=null and cusPassword!=''"> and cus_password=#{cusPassword}</if>
+		  <if test="cusPhone!=null and cusPhone!=''">and cus_phone=#{cusPhone}</if>
+		  <if test="cusIdCard!=null and cusIdCard!=''">and cus_idcard=#{cusIdCard}</if>
+		  <if test="cusEmail!=null and cusEmail!=''">and cus_email=#{cusEmail}</if>
+		  <if test="cusAddress!=null and cusAddress!=''">and cus_address=#{cusAddress}</if>
+		  <if test="cusState!=false">and cus_state=#{cusState}</if>
+		  <if test="cusCreateTime!=null and cusCreateTime!=''">and cus_create_time=#{cusCreateTime}</if>
+		  <if test="cusLoginTime!=null and cusLoginTime!=''">and cus_login_time=#{cusLoginTime}</if> 
+		  <if test="tId!=null and tId!=''">and t_id=#{tId}</if>
+		  <if test="isDelete!=false">and is_delete=#{isDelete}</if>
+		</where>
+	</select>
+	
+	<!-- 通过id得到客户信息 -->
+<select id="getCustomerByCid" parameterType="com.vivebest.erp.entity.Customer"
+		resultMap="baseResult">
+		SELECT
+	<include refid="columns" />
+		FROM customer
+		<where>
+		<if test="cusId!=null">cus_id=#{cusId}</if>
+		</where>
+	</select>
+	
+	<!-- 通过用户名得到所有的客户信息 -->
+	<select id="getCustomerByCname" parameterType="com.vivebest.erp.entity.Customer"
+		resultMap="baseResult">
+		SELECT
+	<include refid="columns" />
+		FROM customer
+		<where>
+		<if test="cusName!=null ">cus_name=#{cusName}</if>
+		</where>
+	</select>
+	
+	<!-- 客户登陆 -->
+	<select id="customerLogin" parameterType="com.vivebest.erp.entity.Customer"
+		resultMap="baseResult">
+		SELECT
+	<include refid="columns" />
+		FROM customer
+		<where>
+		<if test="cusPhone!=null ">cus_Phone=#{cusPhone}</if>
+		<if test="cusPassword!=null">AND cus_password=#{cusPassword}</if>
+		</where>
+	</select>
+
+	<!-- 增加的客户信息 -->
+  <insert id="addCustomer" parameterType="com.vivebest.erp.entity.Customer" 
+   				useGeneratedKeys="true" keyProperty="cusId" >
+		INSERT INTO customer	
+	<trim prefix="(" suffix=")" suffixOverrides=",">
+		<if test="cusName!=null ">cus_name,</if>
+		<if test="cusPassword!=null">cus_password,</if>
+		<if test="cusPhone!=null">cus_phone,</if>
+		<if test="cusIdCard!=null">cus_idcard,</if>
+		<if test="cusEmail!=null">cus_email,</if>
+		<if test="cusAddress!=null">cus_address,</if>
+		<if test="cusState!=false">cus_state,</if>
+		<if test="cusCreateTime!=null">cus_create_time,</if>
+		<if test="cusLoginTime!=null">cus_login_time,</if>
+		<if test="tId!=null">t_id,</if>
+		<if test="isDelete!=false ">is_delete,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+		<if test="cusName!= null">#{cusName,jdbcType=VARCHAR},</if>
+		<if test="cusPassword!= null">#{cusPassword,jdbcType=VARCHAR},</if>
+		<if test="cusPhone!=null">#{cusPhone,jdbcType=VARCHAR},</if>
+		<if test="cusIdCard!=null">#{cusIdCard,jdbcType=VARCHAR},</if>
+		<if test="cusEmail!=null">#{cusEmail,jdbcType=VARCHAR},</if>
+		<if test="cusAddress!=null">#{cusAddress,jdbcType=VARCHAR},</if>
+		<if test="cusState!=false">#{cusState,jdbcType=BOOLEAN},</if>
+		<if test="cusCreateTime!=null">#{cusCreateTime,jdbcType=TIMESTAMP},</if>
+		<if test="cusLoginTime!=null">#{cusLoginTime,jdbcType=TIMESTAMP},</if>
+		<if test="tId!=null">#{tId,jdbcType=INTEGER},</if>
+		<if test="isDelete!=false ">#{isDelete,jdbcType=BOOLEAN},</if>
+	</trim>
+	</insert>
+	
+	<!-- 修改客户信息 -->
+  	<update id="updateCustomer"  parameterType="com.vivebest.erp.entity.Customer" >
+		 UPDATE customer
+	 <trim prefix="set" suffixOverrides=",">
+	  <if test="cusName!=null and cusName!=''">cus_name=#{cusName},</if>
+	  <if test="cusPassword!=null and cusPassword!=''">cus_password=#{cusPassword},</if>
+	  <if test="cusPhone!=null and cusPhone!=''">cus_phone=#{cusPhone},</if>
+	  <if test="cusIdCard!=null and cusIdCard!=''">cus_idcard=#{cusIdCard},</if>
+	  <if test="cusEmail!=null and cusEmail!=''">cus_email=#{cusEmail},</if>
+	  <if test="cusAddress!=null and cusAddress!=''">cus_address=#{cusAddress},</if>
+	  <if test="cusState!=false and  cusState!=''">cus_state=#{cusState},</if>
+	  <if test="cusState!=true ">cus_state=#{cusState},</if>
+	  <if test="cusCreateTime!=null and cusCreateTime!=''">cus_create_time=#{cusCreateTime},</if>
+	  <if test="cusLoginTime!=null and cusLoginTime!=''">cus_login_time=#{cusLoginTime},</if> 
+	  <if test="tId!=null and tId!=''">t_id=#{tId},</if>
+	 </trim>
+	 WHERE
+	 	<if test="cusIdCard!=null">
+		  cus_idcard=#{cusIdCard}
+	 	</if>
+   </update>
+   
+    <!-- 删除用户 -->
+   <update id="deleteCustomer"  parameterType="com.vivebest.erp.entity.Customer" >
+		 UPDATE customer
+	 <trim prefix="set" suffixOverrides=",">
+	  <if test="isDelete!=true ">is_delete=#{isDelete},</if>
+	 </trim>
+	 WHERE
+	 	<if test="cusId!=null">
+		  cus_id=#{cusId}
+	 	</if>
+   </update>
+   <!-- 得到总页数 -->
+   <select id="selectTotalRecord" 
+	resultType="int">
+		SELECT COUNT(*) FROM customer
+	</select>
+
+   
+   <!-- 分页得到客户信息 -->
+	<select id="getPartCustomer" parameterType="map"
+		resultMap="baseResult">
+		select
+		<include refid="columns" />
+		from customer limit #{page.index},#{page.pageSize}
+	</select>
+	
+   <!-- 带条件得到总页数 -->
+   <select id="selectTotalRecord3" parameterType="int" 
+	resultType="int">
+		SELECT COUNT(*) FROM customer
+		<where> 
+			<if test="cusId!=null"></if>
+		   cus_id=#{cusId}
+		</where>
+	</select>  
+      <!-- 带条件分页得到客户信息 -->
+	<select id="getPartCustomerByCusId" parameterType="map"
+		resultMap="baseResult">
+		select
+		<include refid="columns" />
+		from customer 
+		<where>
+			<if test="cusId != null and cusId != ''">
+				cus_id=#{cusId}
+			</if>
+		</where>
+		 limit #{page.index},#{page.pageSize} 
+	</select>
+   
+</mapper>

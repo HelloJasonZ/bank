@@ -1,0 +1,108 @@
+package com.vivebest.erp.control;
+
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+
+
+
+
+
+import com.vivebest.erp.entity.Page;
+import com.vivebest.erp.entity.Teller;
+import com.vivebest.erp.entity.Transactions;
+import com.vivebest.erp.service.TransactionsService;
+
+@Controller
+@RequestMapping("/transactions")
+public class TransactionsControl {
+	
+	@Autowired
+	private TransactionsService transactionsService;
+	
+	/**
+	 * 带查询条件的分页
+	 * @param request
+	 * @param map
+	 * @return
+	 */
+	@RequestMapping(value="/listByDate.do",method = RequestMethod.GET)
+	public String selectAllTransactionsByCondition(HttpServletRequest request,Map<String, Object> map){
+		HttpSession session = request.getSession();
+		Teller teller = (Teller) session.getAttribute("teller");
+		if(teller == null){
+			return "teller/login";
+		}
+		String pageNumber = request.getParameter("pageNumber");
+		System.out.println(pageNumber+"<<<<<<<<<<<<");
+		String minDate = request.getParameter("minDate");
+		String maxDate = request.getParameter("maxDate");
+		String acNumber = request.getParameter("acNumber");
+		System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<"+acNumber);
+		int pageSize = 10;
+		Transactions transactions = new Transactions();
+		if(acNumber.equals("")){
+			transactions.setAcNumber(null);
+		}else {
+			transactions.setAcNumber(acNumber);			
+		}
+		Page<Transactions> page = transactionsService.getAllTransactionsByCondition(pageNumber,
+				pageSize, transactions, minDate, maxDate);
+		page.setPath("/bankERP/transactions/listByDate.do?acNumber="+acNumber+"&minDate="+minDate+"&maxDate="+maxDate+"&");
+		map.put("page", page);
+		return "page/transactions_list";
+	}
+	/**
+	 * 普通分页
+	 * @param request
+	 * @param map
+	 * @return
+	 */
+	@RequestMapping(value="/list.do",method = RequestMethod.GET)
+	public String selectAllTransactions(HttpServletRequest request,Map<String, Object> map){
+		HttpSession session = request.getSession();
+		Teller teller = (Teller) session.getAttribute("teller");
+		if(teller == null){
+			return "teller/login";
+		}
+		String pageNumber = request.getParameter("pageNumber");
+		int pageSize = 10;
+		Transactions transactions = new Transactions();
+		transactions.setAcNumber(null);
+		Page<Transactions> page = transactionsService.selectAllTransactions(pageNumber,
+				pageSize, transactions);
+		
+		page.setPath("/bankERP/transactions/list.do?");
+		map.put("page", page);
+		return "page/transactions_list";
+	}
+	/**
+	 * 普通分页
+	 * @param request
+	 * @param map
+	 * @return
+	 */
+	@RequestMapping(value="/list_ten.do",method = RequestMethod.GET)
+	public String selectAllTransactionsTen(HttpServletRequest request,Map<String, Object> map){
+		HttpSession session = request.getSession();
+		/*Teller teller = (Teller) session.getAttribute("teller");
+		if(teller == null){
+			return "teller/login";
+		}*/
+		Transactions transactions = new Transactions();
+		transactions.setAcNumber("6226020160809174819");
+		 List<Transactions> transactionsMap = transactionsService.selectAllTransactionsTen(transactions);
+		
+		map.put("transactionsMap", transactionsMap);
+		return "page/transactions_list_ten";
+	}
+}
