@@ -368,6 +368,9 @@ public class TellerControl {
 		@ResponseBody
 		public List<Map<String,Object>> getDataAccount(HttpSession httpSession,HttpServletRequest request)
 		{
+			String get_time=request.getParameter("get_time");
+			if(("0").equals(get_time))
+			{
 			List<Map<String, Object>> list=new ArrayList<>();
 			Date time=new Date();
 			SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -380,5 +383,20 @@ public class TellerControl {
 				list.add(mess);
 			}
 			return list;
+			}
+			else
+			{
+				List<Map<String, Object>> list=new ArrayList<>();
+				SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
+				Map<String, Integer> map=TimeUtils.getMess(get_time);
+				for(String key:map.keySet())
+				{
+					HashMap<String, Object> mess=new HashMap<String,Object>();
+					mess.put("time", key);
+					mess.put("item", map.get(key));
+					list.add(mess);
+				}
+				return list;
+			}
 		}
 }

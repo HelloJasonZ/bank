@@ -148,7 +148,7 @@
                                </ul>
                     		</li>
                             <li>
-                               <a href="chart.html"><i class="fa fa-bar-chart-o"></i>增加权限等级</a>
+                               <a href="${ctx}/teller/returnShowAccountData.do"><i class="fa fa-bar-chart-o"></i>查看卡注册情况</a>
                             </li>
                        </ul>
                      </li>

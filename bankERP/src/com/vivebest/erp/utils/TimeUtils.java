@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ public class TimeUtils {
 	{
 		
 		Map<String,  Integer> map=new HashMap<>();
+		LinkedHashMap<String,  Integer> returnmap=new LinkedHashMap<>();
 		//List<Map<String,Integer>> list=new ArrayList<>();
 		String sql="select ac_create_time from account where Date(ac_create_time)='"+time+"'";
 		try {
@@ -79,22 +81,34 @@ public class TimeUtils {
 				//修改排序问题
 				
 				List<String> list_time=new ArrayList<>();
-				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+				//SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 				for(String key:map.keySet())
 				{
 					list_time.add(key);
 				}
-				System.out.println(">>>>>>>>>>>>>>>信息"+list_time);
-				for(String k:list_time)
+				Collections.sort(list_time);
+				System.out.println("list"+list_time);
+				for(int i=0;i<list_time.size();i++)
 				{
-					
+					System.out.println(">>>>>"+list_time.get(i));
+					System.out.println(">>>>>>>>map"+map.get(list_time.get(i)));
+					returnmap.put(list_time.get(i), map.get(list_time.get(i)));
 				}
+				/*for(String k:list_time)
+				{
+					returnmap.put(k, map.get(k));
+				}
+				System.out.println(">>>>>>>>>>>>>>>>>>>"+returnmap);*/
+				/*for(String m:returnmap.keySet())
+				{
+					System.out.println(">>>>>>>"+returnmap.get(m));
+				}*/
 		}
 		catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
-		return map;
+		return returnmap;
 		
 	}
 	

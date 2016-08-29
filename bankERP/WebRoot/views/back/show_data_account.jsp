@@ -23,7 +23,7 @@
 	<script src="${ctx}/style/assets/js/jquery-1.10.2.js"></script>
 	<script src="${ctx}/scripts/js/main.js"></script>
 	<script src="${ctx}/scripts/echarts.js"></script>
-     
+     <script language="javascript" type="text/javascript" src="${ctx}/My97DatePicker/WdatePicker.js"></script>
 </head>
 
 <body>
@@ -111,6 +111,9 @@
                             <li>
                                <a href="${ctx}/teller/returnShowData.do"><i class="fa fa-bar-chart-o"></i>查看柜员绩效</a>
                             </li>
+                            <li>
+                               <a href="${ctx}/teller/returnShowAccountData.do"><i class="fa fa-bar-chart-o"></i>查看卡注册情况</a>
+                            </li>
                        </ul>
                      </li>
                      </c:if>
@@ -144,6 +147,9 @@
         
         <!-- /. NAV SIDE  -->
         <div id="page-wrapper">
+        <input type="text" class="form-control" style="width:200px;" placeholder="选择查询时间" name="minDate" id="sreachTime"
+ onClick="WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'%y-%M-%d'})">
+        <button class="btn btn-primary btn-lg" onclick="sreach();">查询</button>
              <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
     <div id="main" style="width: 600px;height:400px;"></div>
     <script type="text/javascript">
@@ -174,7 +180,45 @@
         //myChart.showLoading();// 加载动画
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
-        $.get('${ctx}/teller/getDataAccount.do').done(function (data) {
+        $.ajax({
+ 			type:'get',
+ 			 data:{"get_time":0},
+ 			 dataType:'json',
+ 			 url:'${ctx}/teller/getDataAccount.do',
+ 			 error:function (responseText, textStatus, XMLHttpRequest)
+ 	        {
+ 				 alert("error");
+ 				 alert(responseText);
+ 	        },
+ 	        success: function(data){
+ 	        	var cName=[];
+ 	        	var cWork=[];
+ 	            for(var x in data)
+ 	            	{
+ 	            	cName[x]=data[x].time;
+ 	            	cWork[x]=data[x].item;
+ 	            	}
+ 	        	// 填入数据
+ 	            myChart.setOption({
+ 	            	 legend: {
+ 	                     data:['注册量']
+ 	                 },
+ 	                xAxis: {
+ 	                	name:'时间',
+ 	                	data:cName
+ 	                },
+ 	               
+ 	                series: [{
+ 	                    // 根据名字对应到相应的系列
+ 	                    type:'line',
+ 	                    name: '注册量',
+ 	                    data: cWork
+ 	                }
+ 	                ]
+ 	            });
+ 	        }
+ 		});
+        /* $.get('${ctx}/teller/getDataAccount.do').done(function (data) {
         	
         	var cName=[];
         	var cWork=[];
@@ -198,43 +242,11 @@
                     type:'line',
                     name: '注册量',
                     data: cWork
-                },
-                {
-                    name:'注册量',
-                    type:'bar',
-                    data:cWork
                 }
                 ]
             });
-        });
+        }); */
     </script>
-   <!--  <script type="text/javascript">
-    
-    function getChartData() {  
-        //获得图表的options对象  
-         var myChart = echarts.init(document.getElementById('main'));
-        var options = myChart.getOption();  
-        //通过Ajax获取数据  
-        
-        $.ajax({  
-            type : "get",  
-            async : false, //同步执行  
-            url : "${ctx}/teller/getDataTeller.do",  
-            dataType : "json", //返回数据形式为json  
-            success : function(result) {  
-            	 options.legend.data = result.legend;  
-            	for(var x in data){
-            		options.xAxis[x].data = data[x].name; 
-            		options.series[0].data = data[x].work;
-	        		}
-            	 myChart.setOption(options); 
-            },  
-            error : function(errorMsg) {  
-                alert("不好意思，大爷，图表请求数据失败啦!");  
-            }  
-        });  
-    }  
-    </script> -->
     
         <!-- /. PAGE WRAPPER  -->
     </div>
@@ -287,7 +299,56 @@
  		});
  		//
  	}
- 	
+ 	function sreach()
+ 	{
+ 		var time=$("#sreachTime").val();
+ 		if(time==""||time.length==0)
+ 			{
+ 			alert("选择事件");
+ 			}
+ 		else
+ 			{
+ 			$.ajax({
+ 	 			type:'get',
+ 	 			 data:{"get_time":time},
+ 	 			 dataType:'json',
+ 	 			 url:'${ctx}/teller/getDataAccount.do',
+ 	 			 error:function (responseText, textStatus, XMLHttpRequest)
+ 	 	        {
+ 	 				 alert("error");
+ 	 				 alert(responseText);
+ 	 	        },
+ 	 	        success: function(data){
+ 	 	        	var cName=[];
+ 	 	        	var cWork=[];
+ 	 	            for(var x in data)
+ 	 	            	{
+ 	 	            	cName[x]=data[x].time;
+ 	 	            	cWork[x]=data[x].item;
+ 	 	            	}
+ 	 	        	// 填入数据
+ 	 	            myChart.setOption({
+ 	 	            	 legend: {
+ 	 	                     data:['注册量']
+ 	 	                 },
+ 	 	                xAxis: {
+ 	 	                	name:'时间',
+ 	 	                	data:cName
+ 	 	                },
+ 	 	               
+ 	 	                series: [{
+ 	 	                    // 根据名字对应到相应的系列
+ 	 	                    type:'line',
+ 	 	                    name: '注册量',
+ 	 	                    data: cWork
+ 	 	                }
+ 	 	                ]
+ 	 	            });
+ 	 	        }
+ 	 		});
+ 			
+ 			}
+ 	}
  	
  	function update()
  	{

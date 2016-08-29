@@ -145,6 +145,9 @@
                             <li>
                                <a href="${ctx}/teller/returnShowData.do"><i class="fa fa-bar-chart-o"></i>查看柜员绩效</a>
                             </li>
+                            <li>
+                               <a href="${ctx}/teller/returnShowAccountData.do"><i class="fa fa-bar-chart-o"></i>查看卡注册情况</a>
+                            </li>
                        </ul>
                      </li>
                      </c:if>
